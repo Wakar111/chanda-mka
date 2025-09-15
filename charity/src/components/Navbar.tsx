@@ -50,6 +50,7 @@ export default function Navbar() {
                     <Link to="/admin" className="hover:text-gray-300">Dashboard</Link>
                     <Link to="/admin/create-user" className="hover:text-gray-300">Create User</Link>
                     <Link to="/admin/charity-promise" className="hover:text-gray-300">Set Charity Promise</Link>
+                    <Link to="/admin/set-chanda-type" className="hover:text-gray-300">Set Chanda Type</Link>
                     <Link to="/profile" className="hover:text-gray-300">Profile</Link>
                     <button onClick={handleLogout} className="hover:text-gray-300">Logout</button>
                 </>

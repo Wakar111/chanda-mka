@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { supabase } from '../../supabaseClient';
 import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
+import ChandaCard from '../../components/ChandaCard';
+import LoadingSpinner from '../../components/LoadingSpinner';
 
 interface UserInfo {
   name: string;
@@ -11,25 +13,69 @@ interface UserInfo {
   role: string;
 }
 
-interface ChandaItem {
+interface Payment {
+  id: string;
+  amount: number;
+  payment_date: string;
+  promise_id: string;
+}
+
+interface ChandaType {
   id: string;
   name: string;
   description: string;
+}
+
+interface Promise {
+  id: string;
+  user_id: string;
+  chanda_type_id: string;
+  year: number;
   promise: number;
-  paid_in: number;
   spende_ends: string;
+  chanda_types: ChandaType;
+  payments?: Payment[];
 }
 
 export default function Home() {
-  const [chandaItems, setChandaItems] = useState<ChandaItem[]>([]);
-  const [selectedChanda, setSelectedChanda] = useState<ChandaItem | null>(null);
+  const currentYear = new Date().getFullYear();
+  const [selectedYear, setSelectedYear] = useState(currentYear);
+  const [availableYears, setAvailableYears] = useState<number[]>([]);
+  const [promises, setPromises] = useState<Promise[]>([]);
   const [loading, setLoading] = useState(true);
   const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
 
   useEffect(() => {
     fetchUserInfo();
-    fetchChandaData();
+    fetchAvailableYears();
   }, []);
+
+  useEffect(() => {
+    fetchChandaData();
+  }, [selectedYear]);
+
+  const fetchAvailableYears = async () => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+
+      const { data, error } = await supabase
+        .from('promises')
+        .select('year')
+        .eq('user_id', session.user.id)
+        .order('year', { ascending: false });
+
+      if (error) throw error;
+
+      const years = [...new Set(data?.map(p => p.year) || [])];
+      if (!years.includes(currentYear)) {
+        years.unshift(currentYear);
+      }
+      setAvailableYears(years);
+    } catch (error) {
+      console.error('Error fetching available years:', error);
+    }
+  };
 
   const fetchUserInfo = async () => {
     try {
@@ -50,17 +96,65 @@ export default function Home() {
   };
 
   const fetchChandaData = async () => {
+    setLoading(true);
     try {
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return;
+      if (!session) {
+        console.log('No session found');
+        return;
+      }
 
-      const { data, error } = await supabase
-        .from('chanda')
-        .select('*')
-        .eq('user_id', session.user.id);
+      console.log('Fetching promises for user:', session.user.id);
+      
+      // Fetch promises with chanda types
+      console.log('Fetching promises for year:', selectedYear);
+      
+      const { data: promiseData, error: promiseError } = await supabase
+        .from('promises')
+        .select(`
+          *,
+          chanda_types!inner(*)
+        `)
+        .eq('user_id', session.user.id)
+        .eq('year', selectedYear);
+      
+      console.log('Raw promise data:', promiseData);
 
-      if (error) throw error;
-      setChandaItems(data || []);
+      if (promiseError) {
+        console.error('Promise fetch error:', promiseError);
+        throw promiseError;
+      }
+      
+      if (!promiseData) {
+        console.log('No promise data found');
+        return;
+      }
+
+      // Fetch payments for each promise
+      console.log('Fetching payments for promises...');
+      const promisesWithPayments = await Promise.all(
+        promiseData.map(async (promise) => {
+          const { data: payments, error: paymentsError } = await supabase
+            .from('payments')
+            .select('*')
+            .eq('promise_id', promise.id)
+            .order('payment_date', { ascending: false });
+
+          if (paymentsError) {
+            console.error('Payments fetch error:', paymentsError);
+            throw paymentsError;
+          }
+
+          console.log(`Payments for promise ${promise.id}:`, payments);
+          return {
+            ...promise,
+            payments: payments || []
+          };
+        })
+      );
+
+      console.log('Promises with payments:', promisesWithPayments);
+      setPromises(promisesWithPayments);
     } catch (error) {
       console.error('Error fetching chanda data:', error);
     } finally {
@@ -68,20 +162,12 @@ export default function Home() {
     }
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('de-DE', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit'
-    });
-  };
-
   if (loading) {
     return (
       <div className="min-h-screen flex flex-col bg-gray-100">
         <Navbar />
         <div className="flex-grow flex items-center justify-center">
-          <div className="text-gray-600">Loading...</div>
+          <LoadingSpinner />
         </div>
         <Footer />
       </div>
@@ -115,85 +201,58 @@ export default function Home() {
               </div>
             </div>
           )}
-          <h1 className="text-2xl font-bold text-gray-800 mb-6">
-            Dein Jahres Übersicht
-          </h1>
-
-          <div className="space-y-4">
-            {chandaItems.map((chanda) => {
-              const progress = chanda.promise ? (chanda.paid_in / chanda.promise) * 100 : 0;
-              
-              return (
-                <div
-                  key={chanda.id}
-                  onClick={() => setSelectedChanda(chanda)}
-                  className="bg-white rounded-lg shadow-md p-6 cursor-pointer hover:shadow-lg transition-shadow"
-                >
-                  <h2 className="text-xl font-semibold text-gray-800 mb-3">
-                    {chanda.name}
-                  </h2>
-                  <div className="flex justify-between mb-3">
-                    <span className="text-gray-600">
-                      {chanda.promise ? `Versprochen: ${chanda.promise}` : 'Freiwillig'}
-                    </span>
-                    <span className="text-gray-600">
-                      Bezahlt: {chanda.paid_in}
-                    </span>
-                  </div>
-                  {chanda.promise > 0 && (
-                    <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
-                      <div
-                        className="h-full bg-blue-600 transition-all duration-500"
-                        style={{ width: `${Math.min(progress, 100)}%` }}
-                      />
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Modal */}
-        {selectedChanda && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
-            <div className="bg-white rounded-lg max-w-md w-full p-6">
-              <h2 className="text-xl font-bold mb-4">{selectedChanda.name}</h2>
-              <div className="space-y-4">
-                <div>
-                  <label className="text-sm text-gray-600 block">Beschreibung</label>
-                  <p className="text-gray-800">{selectedChanda.description}</p>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="bg-gray-50 p-3 rounded">
-                    <label className="text-sm text-gray-600 block">Versprochen</label>
-                    <span className="text-gray-800 font-semibold">
-                      {selectedChanda.promise || 'Freiwillig'}
-                    </span>
-                  </div>
-                  <div className="bg-gray-50 p-3 rounded">
-                    <label className="text-sm text-gray-600 block">Bezahlt</label>
-                    <span className="text-gray-800 font-semibold">
-                      {selectedChanda.paid_in}
-                    </span>
-                  </div>
-                </div>
-                <div className="bg-gray-50 p-3 rounded">
-                  <label className="text-sm text-gray-600 block">Enddatum</label>
-                  <span className="text-gray-800 font-semibold">
-                    {formatDate(selectedChanda.spende_ends)}
-                  </span>
-                </div>
-                <button
-                  onClick={() => setSelectedChanda(null)}
-                  className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-colors"
-                >
-                  Schließen
-                </button>
-              </div>
+          <div className="flex justify-between items-center mb-6">
+            <h1 className="text-2xl font-bold text-gray-800">
+              Dein Jahres Übersicht
+            </h1>
+            <div className="flex items-center space-x-2">
+              <label className="text-sm font-medium text-gray-600">Jahr:</label>
+              <select
+                value={selectedYear}
+                onChange={(e) => setSelectedYear(Number(e.target.value))}
+                className="rounded-lg border border-gray-300 px-3 py-1 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                disabled={loading}
+              >
+                {availableYears.map(year => (
+                  <option key={year} value={year}>{year}</option>
+                ))}
+              </select>
+              {loading && (
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 ml-2"></div>
+              )}
             </div>
           </div>
-        )}
+
+          <div className="space-y-6">
+            {promises.length > 0 ? (
+              <div className="space-y-6">
+                {promises.map((promise) => (
+                  <ChandaCard
+                    key={promise.id}
+                    chanda={{
+                      id: promise.id,
+                      name: promise.chanda_types.name,
+                      description: promise.chanda_types.description,
+                      promise: promise.promise,
+                      paid_in: promise.payments?.reduce((sum, p) => sum + p.amount, 0) || 0,
+                      spende_ends: promise.spende_ends
+                    }}
+                    payments={promise.payments || []}
+                  />
+                ))}
+              </div>
+            ) : (
+              <div className="bg-white rounded-lg shadow-md p-8 text-center">
+                <h3 className="text-xl font-medium text-gray-800 mb-2">
+                  Keine Chanda-Einträge gefunden
+                </h3>
+                <p className="text-gray-600">
+                  Derzeit sind keine Chanda-Einträge für Ihr Konto vorhanden.
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
       <Footer />
     </div>

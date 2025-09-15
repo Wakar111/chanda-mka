@@ -13,6 +13,7 @@ import Contact from "./pages/user/Contact";
 // Admin pages
 import CreateUser from "./pages/admin/CreateUser";
 import CharityPromise from "./pages/admin/CharityPromise";
+import SetChandaType from "./pages/admin/SetChandaType";
 
 function App() {
 
@@ -59,6 +60,11 @@ function App() {
       <Route path="/admin/charity-promise" element={
         <ProtectedRoute requiredRole="admin">
           <CharityPromise />
+        </ProtectedRoute>
+      } />
+      <Route path="/admin/set-chanda-type" element={
+        <ProtectedRoute requiredRole="admin">
+          <SetChandaType />
         </ProtectedRoute>
       } />
     </Routes>
