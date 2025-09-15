@@ -6,105 +6,192 @@ import Footer from '../../components/Footer';
 interface User {
   id: string;
   jamaatID: string;
-  full_name: string;
+  name: string;
+  surname: string;
   email: string;
+  jamaat: string;
+  phone: string;
+  profession: string;
 }
 
-interface CharityPromise {
+interface ChandaType {
+  id: string;
+  name: string;
+  description: string;
+}
+
+interface Payment {
+  id: string;
+  promise_id: string;
+  amount: number;
+  payment_date: string;
+}
+
+interface Promise {
   id: string;
   user_id: string;
-  name: string;
+  chanda_type_id: string;
+  year: number;
   promise: number;
   spende_ends: string;
+  chanda_types: ChandaType;
+  payments?: Payment[];
+  lastPaymentDate?: string;
 }
 
+const formatCurrency = (amount: number): string => {
+  return `${amount.toFixed(2)} €`;
+};
+
+const getTotalPaid = (promise: Promise): number => {
+  return promise.payments?.reduce((sum, p) => sum + p.amount, 0) || 0;
+};
+
+const getRemainingAmount = (promise: Promise): number => {
+  return promise.promise - getTotalPaid(promise);
+};
+
+const getYearlyPromiseTotal = (promises: Promise[], year: number): number => {
+  return promises
+    .filter(p => p.year === year)
+    .reduce((sum, p) => sum + p.promise, 0);
+};
+
+const getYearlyPaidTotal = (promises: Promise[], year: number): number => {
+  return promises
+    .filter(p => p.year === year)
+    .reduce((sum, p) => sum + getTotalPaid(p), 0);
+};
+
+const getYearlyRemainingTotal = (promises: Promise[], year: number): number => {
+  return promises
+    .filter(p => p.year === year)
+    .reduce((sum, p) => sum + getRemainingAmount(p), 0);
+};
+
+const getYearlyProgress = (promises: Promise[], year: number): number => {
+  const promisesForYear = promises.filter(p => p.year === year);
+  if (promisesForYear.length === 0) return 0;
+  
+  const totalPromised = promisesForYear.reduce((sum, p) => sum + p.promise, 0);
+  const totalPaid = promisesForYear.reduce((sum, p) => sum + getTotalPaid(p), 0);
+  return totalPaid > 0 ? (totalPaid / totalPromised) * 100 : 0;
+};
+
+type StatusMessage = {
+  type: 'success' | 'error';
+  message: string;
+} | null;
+
 export default function CharityPromise() {
-  const [users, setUsers] = useState<User[]>([]);
-  const [selectedUser, setSelectedUser] = useState<string>('');
-  const [formData, setFormData] = useState({
-    name: '',
-    promise: '',
-    spende_ends: ''
-  });
-  const [status, setStatus] = useState<{ type: string; message: string } | null>(null);
-  const [userPromises, setUserPromises] = useState<CharityPromise[]>([]);
+  const [searchJamaatID, setSearchJamaatID] = useState('');
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [status, setStatus] = useState<StatusMessage>(null);
+  const [userPromises, setUserPromises] = useState<Promise[]>([]);
+  const [chandaTypes, setChandaTypes] = useState<ChandaType[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
+  const [availableYears, setAvailableYears] = useState<number[]>([]);
 
-  useEffect(() => {
-    fetchUsers();
-  }, []);
-
-  useEffect(() => {
-    if (selectedUser) {
-      fetchUserPromises(selectedUser);
+  const searchUser = async () => {
+    if (!searchJamaatID.trim()) {
+      setStatus({ type: 'error', message: 'Bitte geben Sie eine Jamaat ID ein' });
+      return;
     }
-  }, [selectedUser]);
 
-  const fetchUsers = async () => {
+    setLoading(true);
+    setStatus(null);
+    setSelectedUser(null);
+    setUserPromises([]);
+
     try {
       const { data, error } = await supabase
         .from('users')
-        .select('id, jamaatID, full_name, email')
-        .eq('role', 'user');
+        .select('id, jamaatID, name, surname, email, jamaat, phone, profession')
+        .eq('role', 'user')
+        .eq('jamaatID', searchJamaatID)
+        .limit(1);
 
       if (error) throw error;
-      setUsers(data || []);
+
+      if (data && data.length > 0) {
+        setSelectedUser(data[0]);
+        await fetchChandaTypes();
+        const promises = await fetchUserPromises(data[0].id);
+        const years = [...new Set(promises.map(p => p.year))].sort((a, b) => b - a);
+        setAvailableYears(years);
+        setSelectedYear(years[0] || new Date().getFullYear());
+      } else {
+        setStatus({ type: 'error', message: 'Kein Benutzer mit dieser Jamaat ID gefunden' });
+      }
     } catch (error) {
-      console.error('Error fetching users:', error);
+      console.error('Error searching user:', error);
+      setStatus({ type: 'error', message: 'Fehler beim Suchen des Benutzers' });
+    } finally {
+      setLoading(false);
     }
   };
 
   const fetchUserPromises = async (userId: string) => {
     try {
       const { data, error } = await supabase
-        .from('chanda')
-        .select('*')
-        .eq('user_id', userId);
-
+        .from('promises')
+        .select(`
+          *,
+          chanda_types (*)
+        `)
+        .eq('user_id', userId)
+        .order('year', { ascending: false });
       if (error) throw error;
-      setUserPromises(data || []);
+      
+      const promises = data || [];
+      const promisesWithPayments = await Promise.all(
+        promises.map(async (promise) => {
+          const payments = await fetchPayments(promise.id);
+          const lastPayment = payments.length > 0
+            ? payments.sort((a, b) => new Date(b.payment_date).getTime() - new Date(a.payment_date).getTime())[0]
+            : null;
+          return {
+            ...promise,
+            payments,
+            lastPaymentDate: lastPayment?.payment_date
+          };
+        })
+      );
+      
+      setUserPromises(promisesWithPayments);
+      return promisesWithPayments;
     } catch (error) {
       console.error('Error fetching promises:', error);
+      return [];
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setStatus(null);
-
-    if (!selectedUser) {
-      setStatus({ type: 'error', message: 'Please select a user' });
-      return;
-    }
-
+  const fetchPayments = async (promiseId: string) => {
     try {
-      const { error } = await supabase
-        .from('chanda')
-        .insert([
-          {
-            user_id: selectedUser,
-            name: formData.name,
-            promise: parseFloat(formData.promise),
-            spende_ends: formData.spende_ends,
-            paid_in: 0
-          }
-        ]);
+      const { data, error } = await supabase
+        .from('payments')
+        .select('*')
+        .eq('promise_id', promiseId);
+      if (error) throw error;
+      return data || [];
+    } catch (error) {
+      console.error('Error fetching payments:', error);
+      return [];
+    }
+  };
+
+  const fetchChandaTypes = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('chanda_types')
+        .select('*');
 
       if (error) throw error;
-
-      setStatus({ type: 'success', message: 'Charity promise set successfully!' });
-      setFormData({ name: '', promise: '', spende_ends: '' });
-      fetchUserPromises(selectedUser);
+      setChandaTypes(data || []);
     } catch (error) {
-      console.error('Error setting promise:', error);
-      setStatus({ type: 'error', message: 'Failed to set promise. Please try again.' });
+      console.error('Error fetching chanda types:', error);
     }
-  };
-
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
-  ) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
   return (
@@ -112,126 +199,211 @@ export default function CharityPromise() {
       <Navbar />
       <div className="flex-grow p-8">
         <div className="max-w-4xl mx-auto">
-          <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+          <div className="bg-white rounded-lg shadow-md p-6">
             <h1 className="text-2xl font-bold text-gray-800 mb-6">
-              Set Charity Promise
+              Chanda Versprechen festlegen
             </h1>
 
             {status && (
               <div
-                className={`mb-4 p-3 rounded ${
+                className={`mb-6 p-4 rounded-lg ${
                   status.type === 'success'
-                    ? 'bg-green-100 text-green-700'
-                    : 'bg-red-100 text-red-700'
+                    ? 'bg-green-50 text-green-700 border border-green-200'
+                    : 'bg-red-50 text-red-700 border border-red-200'
                 }`}
               >
                 {status.message}
               </div>
             )}
 
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Select User
-                </label>
-                <select
-                  value={selectedUser}
-                  onChange={(e) => setSelectedUser(e.target.value)}
-                  required
-                  className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                >
-                  <option value="">Select a user</option>
-                  {users.map((user) => (
-                    <option key={user.id} value={user.id}>
-                      {user.full_name} ({user.jamaatID})
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Chanda Type
-                </label>
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Jamaat ID
+              </label>
+              <div className="flex space-x-4">
                 <input
                   type="text"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleChange}
-                  required
-                  placeholder="e.g., Chanda Aam, Jalsa Salana"
-                  className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                  value={searchJamaatID}
+                  onChange={(e) => setSearchJamaatID(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && searchUser()}
+                  placeholder="Jamaat ID eingeben..."
+                  className="flex-1 rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                  disabled={loading}
                 />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Promise Amount
-                </label>
-                <input
-                  type="number"
-                  name="promise"
-                  value={formData.promise}
-                  onChange={handleChange}
-                  required
-                  step="0.01"
-                  min="0"
-                  className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  End Date
-                </label>
-                <input
-                  type="date"
-                  name="spende_ends"
-                  value={formData.spende_ends}
-                  onChange={handleChange}
-                  required
-                  className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                />
-              </div>
-
-              <button
-                type="submit"
-                className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-colors"
-              >
-                Set Promise
-              </button>
-            </form>
-          </div>
-
-          {selectedUser && userPromises.length > 0 && (
-            <div className="bg-white rounded-lg shadow-md p-6">
-              <h2 className="text-xl font-bold text-gray-800 mb-4">
-                Current Promises
-              </h2>
-              <div className="space-y-4">
-                {userPromises.map((promise) => (
-                  <div
-                    key={promise.id}
-                    className="border border-gray-200 rounded-lg p-4"
-                  >
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <h3 className="font-semibold text-gray-800">
-                          {promise.name}
-                        </h3>
-                        <p className="text-gray-600">
-                          Promise: {promise.promise}
-                        </p>
-                      </div>
-                      <p className="text-sm text-gray-500">
-                        Ends: {new Date(promise.spende_ends).toLocaleDateString()}
-                      </p>
-                    </div>
-                  </div>
-                ))}
+                <button
+                  type="button"
+                  onClick={searchUser}
+                  disabled={loading}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 disabled:opacity-50 transition-colors"
+                >
+                  {loading ? 'Suche...' : 'Suchen'}
+                </button>
               </div>
             </div>
-          )}
+
+            {selectedUser && (
+              <div className="space-y-8">
+                <div className="p-4 bg-gray-50 rounded-lg">
+                  <h2 className="text-lg font-medium text-gray-800 mb-4">Benutzer Information</h2>
+                  <div className="grid grid-cols-3 gap-4">
+                    <div>
+                      <p className="text-sm text-gray-500">Jamaat ID</p>
+                      <p className="font-medium">{selectedUser.jamaatID}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">Name</p>
+                      <p className="font-medium">{selectedUser.name} {selectedUser.surname}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">Jamaat</p>
+                      <p className="font-medium">{selectedUser.jamaat}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">Telefon</p>
+                      <p className="font-medium">{selectedUser.phone}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">Beruf</p>
+                      <p className="font-medium">{selectedUser.profession}</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-8">
+                  <div className="flex justify-between items-center mb-6">
+                    <h2 className="text-xl font-bold text-gray-800">
+                      Versprechen
+                    </h2>
+                    <div className="flex items-center space-x-2">
+                      <label className="text-sm font-medium text-gray-700">Jahr:</label>
+                      <select
+                        value={selectedYear}
+                        onChange={(e) => setSelectedYear(Number(e.target.value))}
+                        className="rounded-lg border border-gray-300 px-3 py-1 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                        disabled={loading}
+                      >
+                        {availableYears.length > 0 ? (
+                          availableYears.map(year => (
+                            <option key={year} value={year}>{year}</option>
+                          ))
+                        ) : (
+                          <option value={new Date().getFullYear()}>{new Date().getFullYear()}</option>
+                        )}
+                      </select>
+                    </div>
+                  </div>
+                  {userPromises.filter(p => p.year === selectedYear).length > 0 ? (
+                    <div className="space-y-6">
+                      <div className="grid grid-cols-3 gap-4 bg-blue-50 p-4 rounded-lg">
+                        <div>
+                          <p className="text-sm text-blue-600 font-medium">Gesamt Versprechen</p>
+                          <p className="text-2xl font-bold text-blue-700">
+                            {formatCurrency(getYearlyPromiseTotal(userPromises, selectedYear))}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-blue-600 font-medium">Gesamt Bezahlt</p>
+                          <div className="flex items-center gap-2">
+                            <p className="text-2xl font-bold text-blue-700">
+                              {formatCurrency(getYearlyPaidTotal(userPromises, selectedYear))}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-1">
+                          <p className="text-sm text-blue-600 font-medium">Verbleibend</p>
+                          <p className="text-2xl font-bold text-blue-700">
+                            {formatCurrency(getYearlyRemainingTotal(userPromises, selectedYear))}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="overflow-x-auto">
+                        <table className="min-w-full divide-y divide-gray-200">
+                          <thead>
+                            <tr>
+                              <th className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Chanda Typ
+                              </th>
+                              <th className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Versprechen
+                              </th>
+                              <th className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Enddatum
+                              </th>
+                              <th className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Bezahlt
+                              </th>
+                              <th className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Letzte Zahlung
+                              </th>
+                              <th className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Verbleibend
+                              </th>
+                            </tr>
+                          </thead>
+                          <tbody className="bg-white divide-y divide-gray-200">
+                            {userPromises
+                              .filter(p => p.year === selectedYear)
+                              .map((promise) => (
+                              <tr key={promise.id}>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                  {promise.chanda_types.name}
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                  {promise.promise} €
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                  {new Date(promise.spende_ends).toLocaleDateString('de-DE')}
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                  {promise.payments && promise.payments.length > 0 ? (
+                                    <div className="flex items-center gap-2">
+                                      <div className="flex items-center gap-1">
+                                        {promise.payments
+                                          .sort((a, b) => new Date(b.payment_date).getTime() - new Date(a.payment_date).getTime())
+                                          .map((payment, index, arr) => (
+                                            <span key={payment.id}>
+                                              <span 
+                                                className="text-blue-700 font-medium" 
+                                                title={`Zahlung vom ${new Date(payment.payment_date).toLocaleDateString('de-DE')}`}
+                                              >
+                                                {formatCurrency(payment.amount)}
+                                              </span>
+                                              {index < arr.length - 1 && <span className="text-gray-400 mx-1">+</span>}
+                                            </span>
+                                          ))}
+                                      </div>
+                                    </div>
+                                  ) : '-'}
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                  {promise.lastPaymentDate 
+                                    ? new Date(promise.lastPaymentDate).toLocaleDateString('de-DE')
+                                    : '-'}
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm">
+                                  <div className="flex items-center justify-between">
+                                    <span className={`font-medium ${getRemainingAmount(promise) > 0 ? 'text-red-600' : 'text-green-600'}`}>
+                                      {formatCurrency(getRemainingAmount(promise))}
+                                    </span>
+                                  </div>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+
+                    </div>
+                  ) : (
+                    <p className="text-gray-500 text-center py-4">
+                      Keine Versprechen für das Jahr {selectedYear} gefunden
+                    </p>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </div>
       <Footer />
