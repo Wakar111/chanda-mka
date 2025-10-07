@@ -69,15 +69,6 @@ const getYearlyRemainingTotal = (promises: Promise[], year: number): number => {
     .reduce((sum, p) => sum + getRemainingAmount(p), 0);
 };
 
-const getYearlyProgress = (promises: Promise[], year: number): number => {
-  const promisesForYear = promises.filter(p => p.year === year);
-  if (promisesForYear.length === 0) return 0;
-  
-  const totalPromised = promisesForYear.reduce((sum, p) => sum + p.promise, 0);
-  const totalPaid = promisesForYear.reduce((sum, p) => sum + getTotalPaid(p), 0);
-  return totalPaid > 0 ? (totalPaid / totalPromised) * 100 : 0;
-};
-
 type StatusMessage = {
   type: 'success' | 'error';
   message: string;
