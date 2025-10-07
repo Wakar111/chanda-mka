@@ -263,10 +263,10 @@ export default function CreateUser() {
                   value={formData.phone}
                   onChange={handleChange}
                   required
-                  placeholder="0178 5458 5678 or +49 178 5458 5678"
+                  placeholder="017854585678"
                   className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                 />
-                <p className="mt-1 text-sm text-gray-500">Enter German phone number with or without spaces (e.g., 0178 5458 5678 or +49 178 5458 5678)</p>
+                <p className="mt-1 text-sm text-gray-500">Enter phone number (e.g., 017854585678 or +4917854585678)</p>
               </div>
 
               <div>
