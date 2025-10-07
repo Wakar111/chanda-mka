@@ -83,6 +83,9 @@ export default function CharityPromise() {
   const [loading, setLoading] = useState(false);
   const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
   const [availableYears, setAvailableYears] = useState<number[]>([]);
+  const [editingPromiseId, setEditingPromiseId] = useState<string | null>(null);
+  const [editAmount, setEditAmount] = useState<string>('');
+  const [savingPayment, setSavingPayment] = useState<string | null>(null);
 
   const searchUser = async () => {
     if (!searchJamaatID.trim()) {
@@ -120,6 +123,80 @@ export default function CharityPromise() {
       setStatus({ type: 'error', message: 'Fehler beim Suchen des Benutzers' });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const startEditPayment = (promiseId: string) => {
+    setEditingPromiseId(promiseId);
+    const p = userPromises.find((x) => x.id === promiseId);
+    const currentTotal = p ? getTotalPaid(p) : 0;
+    setEditAmount(currentTotal.toFixed(2));
+  };
+
+  const cancelEditPayment = () => {
+    setEditingPromiseId(null);
+    setEditAmount('');
+  };
+
+  const savePayment = async (promiseId: string) => {
+    const newTotal = Number(editAmount.replace(',', '.'));
+    if (isNaN(newTotal) || newTotal < 0) {
+      setStatus({ type: 'error', message: 'Bitte einen gültigen Betrag eingeben' });
+      return;
+    }
+
+    try {
+      setSavingPayment(promiseId);
+      setStatus(null);
+
+      // Replace existing payments with a single payment equal to the new total.
+      const { error: delErr } = await supabase
+        .from('payments')
+        .delete()
+        .eq('promise_id', promiseId);
+      if (delErr) throw delErr;
+
+      if (newTotal > 0) {
+        const { error: insErr } = await supabase
+          .from('payments')
+          .insert({
+            promise_id: promiseId,
+            amount: newTotal,
+            payment_date: new Date().toISOString(),
+          });
+        if (insErr) throw insErr;
+      }
+
+      // Refresh payments for this promise only
+      const payments = await fetchPayments(promiseId);
+      setUserPromises((prev) =>
+        prev.map((p) =>
+          p.id === promiseId
+            ? {
+                ...p,
+                payments,
+                lastPaymentDate:
+                  payments.length > 0
+                    ? payments
+                        .slice()
+                        .sort(
+                          (a, b) =>
+                            new Date(b.payment_date).getTime() -
+                            new Date(a.payment_date).getTime()
+                        )[0].payment_date
+                    : undefined,
+              }
+            : p
+        )
+      );
+
+      setStatus({ type: 'success', message: 'Zahlung gespeichert' });
+      cancelEditPayment();
+    } catch (error) {
+      console.error('Error saving payment:', error);
+      setStatus({ type: 'error', message: 'Fehler beim Speichern der Zahlung' });
+    } finally {
+      setSavingPayment(null);
     }
   };
 
@@ -347,25 +424,53 @@ export default function CharityPromise() {
                                   {new Date(promise.spende_ends).toLocaleDateString('de-DE')}
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                  {promise.payments && promise.payments.length > 0 ? (
+                                  {editingPromiseId === promise.id ? (
                                     <div className="flex items-center gap-2">
-                                      <div className="flex items-center gap-1">
-                                        {promise.payments
-                                          .sort((a, b) => new Date(b.payment_date).getTime() - new Date(a.payment_date).getTime())
-                                          .map((payment, index, arr) => (
-                                            <span key={payment.id}>
-                                              <span 
-                                                className="text-blue-700 font-medium" 
-                                                title={`Zahlung vom ${new Date(payment.payment_date).toLocaleDateString('de-DE')}`}
-                                              >
-                                                {formatCurrency(payment.amount)}
-                                              </span>
-                                              {index < arr.length - 1 && <span className="text-gray-400 mx-1">+</span>}
-                                            </span>
-                                          ))}
-                                      </div>
+                                      <input
+                                        type="number"
+                                        step="0.01"
+                                        value={editAmount}
+                                        onChange={(e) => setEditAmount(e.target.value)}
+                                        placeholder="Betrag"
+                                        className="w-24 rounded border border-gray-300 px-2 py-1 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                                      />
+                                      <button
+                                        type="button"
+                                        onClick={() => savePayment(promise.id)}
+                                        disabled={savingPayment === promise.id}
+                                        className="px-2 py-1 text-white bg-green-600 hover:bg-green-700 rounded disabled:opacity-50"
+                                        title="Speichern"
+                                      >
+                                        {savingPayment === promise.id ? '...' : 'Speichern'}
+                                      </button>
+                                      <button
+                                        type="button"
+                                        onClick={cancelEditPayment}
+                                        className="px-2 py-1 text-gray-700 bg-gray-200 hover:bg-gray-300 rounded"
+                                        title="Abbrechen"
+                                      >
+                                        Abbrechen
+                                      </button>
                                     </div>
-                                  ) : '-'}
+                                  ) : (
+                                    <div className="flex items-center gap-2">
+                                      <span className="text-blue-700 font-medium">
+                                        {formatCurrency(getTotalPaid(promise))}
+                                      </span>
+                                      <button
+                                        type="button"
+                                        onClick={() => startEditPayment(promise.id)}
+                                        className="p-1 rounded hover:bg-gray-100"
+                                        title="Betrag bearbeiten"
+                                      >
+                                        {/* Pencil icon */}
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 text-gray-600">
+                                          <path d="M21.731 2.269a2.625 2.625 0 0 0-3.714 0l-1.157 1.157 3.714 3.714 1.157-1.157a2.625 2.625 0 0 0 0-3.714Z" />
+                                          <path d="M19.513 8.199 15.8 4.486 4.772 15.514a5.25 5.25 0 0 0-1.32 2.214l-.8 2.401a.75.75 0 0 0 .948.948l2.401-.8a5.25 5.25 0 0 0 2.214-1.32L19.513 8.2Z" />
+                                        </svg>
+                                      </button>
+                                    </div>
+                                  )}
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                   {promise.lastPaymentDate 
