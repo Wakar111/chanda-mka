@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../../supabaseClient';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
 import LoadingSpinner from '../../components/LoadingSpinner';
@@ -12,6 +12,7 @@ interface User {
   surname: string | null;
   jamaat: string | null;
   email: string;
+  phone: number;
   role: string;
 }
 
@@ -32,7 +33,6 @@ export default function AdminDashboard() {
     setLoading(true);
     try {
       const { data: { session } } = await supabase.auth.getSession();
-      console.log('Session:', session);
       
       if (!session) {
         navigate('/login');
@@ -46,8 +46,6 @@ export default function AdminDashboard() {
         .eq('id', session.user.id)
         .single();
 
-      console.log('User role:', userData);
-
       if (userError) {
         console.error('Error fetching user role:', userError);
         setError('Error checking admin permissions');
@@ -60,15 +58,11 @@ export default function AdminDashboard() {
         return;
       }
 
-      console.log('Fetching users...');
       const { data, error } = await supabase
         .from('users')
-        .select('id, jamaatID, name, surname, jamaat, email, role')
+        .select('id, jamaatID, name, surname, jamaat, email, role, phone')
         .order('jamaat', { ascending: true })
         .order('name', { ascending: true });
-
-      console.log('Users data:', data);
-      console.log('Users error:', error);
 
       if (error) {
         console.error('Error fetching users:', error);
@@ -157,13 +151,24 @@ export default function AdminDashboard() {
                       <th className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Email
                       </th>
+                      <th className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Phone
+                      </th>
+                      <th className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Role
+                      </th>
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
                     {filteredUsers.map((user) => (
                       <tr key={user.id} className="hover:bg-gray-50">
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {user.jamaatID}
+                        <td className="px-6 py-4 whitespace-nowrap text-sm">
+                          <Link 
+                            to={`/admin/edit-user/${user.id}`}
+                            className="text-blue-600 hover:text-blue-800 hover:underline font-medium"
+                          >
+                            {user.jamaatID}
+                          </Link>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                           {user.name} {user.surname}
@@ -173,6 +178,12 @@ export default function AdminDashboard() {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                           {user.email}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {user.phone}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {user.role}
                         </td>
                       </tr>
                     ))}

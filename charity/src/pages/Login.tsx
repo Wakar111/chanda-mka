@@ -26,10 +26,19 @@ export default function Login() {
         }
 
         // Fetch user profile to check role
-        const { data: profileData, error: profileError } = await supabase.from("users").select("role").eq("id", authData.user?.id).single()
+        const { data: profileData, error: profileError } = await supabase
+            .from("users")
+            .select("role")
+            .eq("id", authData.user?.id)
+            .maybeSingle()
 
-        if (profileError || !profileData) {
-            setError(profileError?.message || "Profile not found")
+        if (profileError) {
+            setError(profileError.message)
+            return
+        }
+
+        if (!profileData) {
+            setError("Benutzerprofil nicht gefunden. Bitte kontaktieren Sie den Administrator.")
             return
         }
 

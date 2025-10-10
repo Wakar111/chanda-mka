@@ -4,6 +4,16 @@ import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
 import { calculateAge } from '../../utils/dateUtils';
 
+// Function to generate a random password
+const generatePassword = (length: number = 12): string => {
+  const charset = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*';
+  let password = '';
+  for (let i = 0; i < length; i++) {
+    password += charset.charAt(Math.floor(Math.random() * charset.length));
+  }
+  return password;
+};
+
 interface CreateUserForm {
   email: string;
   password: string;
@@ -14,6 +24,7 @@ interface CreateUserForm {
   date_of_birth: string;
   phone: string;
   address: string;
+  profession: string;
   role: 'admin' | 'user';
 }
 
@@ -28,15 +39,12 @@ export default function CreateUser() {
     date_of_birth: '',
     phone: '',
     address: '',
+    profession: '',
     role: 'user'
   });
   const [status, setStatus] = useState<{ type: string; message: string } | null>(null);
 
   const validateForm = (): { isValid: boolean; message: string } => {
-    if (formData.password.length < 6) {
-      return { isValid: false, message: 'Password must be at least 6 characters long' };
-    }
-
     const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
     if (!emailRegex.test(formData.email)) {
       return { isValid: false, message: 'Please enter a valid email address' };
@@ -68,10 +76,21 @@ export default function CreateUser() {
     }
 
     try {
-      // Create auth user
+      // Generate a random password
+      const generatedPassword = generatePassword(12);
+      
+      // Create auth user with auto-generated password
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: formData.email,
-        password: formData.password,
+        password: generatedPassword,
+        options: {
+          emailRedirectTo: `${window.location.origin}/login`,
+          data: {
+            name: formData.name,
+            surname: formData.surname,
+            generated_password: generatedPassword
+          }
+        }
       });
 
       if (authError) throw authError;
@@ -81,6 +100,9 @@ export default function CreateUser() {
       }
 
       // Create user profile
+      // Convert phone string to number for int8 database field
+      const phoneNumber = formData.phone ? parseInt(formData.phone.replace(/\s+/g, ''), 10) : null;
+      
       const { error: profileError } = await supabase
         .from('users')
         .insert([
@@ -93,15 +115,33 @@ export default function CreateUser() {
             surname: formData.surname,
             date_of_birth: formData.date_of_birth,
             age: calculateAge(formData.date_of_birth),
-            phone: formData.phone.replace(/\s+/g, ''),
+            phone: phoneNumber,
             address: formData.address,
+            profession: formData.profession,
             role: formData.role
           }
         ]);
 
-      if (profileError) throw profileError;
+      if (profileError) {
+        // If profile creation fails, try to delete the auth user to avoid orphaned accounts
+        await supabase.auth.admin.deleteUser(authData.user.id);
+        throw profileError;
+      }
 
-      setStatus({ type: 'success', message: 'User created successfully!' });
+      // Send password reset email so user can set their own password
+      const { error: resetError } = await supabase.auth.resetPasswordForEmail(formData.email, {
+        redirectTo: `${window.location.origin}/reset-password`
+      });
+
+      if (resetError) {
+        console.error('Error sending password reset email:', resetError);
+        // Don't fail the whole operation if email fails
+      }
+
+      setStatus({ 
+        type: 'success', 
+        message: `Benutzer erfolgreich erstellt! Eine E-Mail zum Festlegen des Passworts wurde an ${formData.email} gesendet.` 
+      });
       setFormData({
         email: '',
         password: '',
@@ -112,11 +152,29 @@ export default function CreateUser() {
         date_of_birth: '',
         phone: '',
         address: '',
+        profession: '',
         role: 'user'
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error creating user:', error);
-      setStatus({ type: 'error', message: 'Failed to create user. Please try again.' });
+      
+      // Handle rate limit error specifically
+      if (error?.status === 429 || error?.message?.includes('429') || error?.message?.includes('rate limit')) {
+        setStatus({ 
+          type: 'error', 
+          message: 'Zu viele Anfragen. Bitte warten Sie einige Minuten und versuchen Sie es erneut.' 
+        });
+      } else if (error?.message?.includes('already registered')) {
+        setStatus({ 
+          type: 'error', 
+          message: 'Diese E-Mail-Adresse ist bereits registriert.' 
+        });
+      } else {
+        setStatus({ 
+          type: 'error', 
+          message: 'Fehler beim Erstellen des Benutzers. Bitte versuchen Sie es erneut.' 
+        });
+      }
     }
   };
 
@@ -158,26 +216,9 @@ export default function CreateUser() {
                   value={formData.email}
                   onChange={handleChange}
                   required
-                  pattern="[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}"
                   className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                 />
-                <p className="mt-1 text-sm text-gray-500">Enter a valid email address</p>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Password
-                </label>
-                <input
-                  type="password"
-                  name="password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  required
-                  minLength={6}
-                  className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                />
-                <p className="mt-1 text-sm text-gray-500">Password must be at least 6 characters long</p>
+                <p className="mt-1 text-sm text-gray-500">Ein Passwort wird automatisch generiert und per E-Mail gesendet</p>
               </div>
 
               <div>
@@ -281,6 +322,24 @@ export default function CreateUser() {
                   required
                   className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                 />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Profession
+                </label>
+                <select
+                  name="profession"
+                  value={formData.profession}
+                  onChange={handleChange}
+                  required
+                  className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                >
+                  <option value="">Bitte wählen...</option>
+                  <option value="Student">Student</option>
+                  <option value="Angestellter">Angestellter</option>
+                  <option value="Kein Arbeit">Kein Arbeit</option>
+                </select>
               </div>
 
               <div>

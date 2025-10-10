@@ -1,5 +1,6 @@
 import './App.css'
 import Login from "./pages/Login";
+import ResetPassword from "./pages/ResetPassword";
 import { Routes, Route, Navigate } from "react-router-dom";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -14,6 +15,7 @@ import Contact from "./pages/user/Contact";
 import CreateUser from "./pages/admin/CreateUser";
 import CharityPromise from "./pages/admin/CharityPromise";
 import SetChandaType from "./pages/admin/SetChandaType";
+import EditUser from "./pages/admin/EditUser";
 
 function App() {
 
@@ -21,6 +23,7 @@ function App() {
     <Routes>
       <Route path="/" element={<Navigate to="/login" replace />} />
       <Route path="/login" element={<Login />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
       
       {/* Shared Routes */}
       <Route path="/profile" element={
@@ -65,6 +68,11 @@ function App() {
       <Route path="/admin/set-chanda-type" element={
         <ProtectedRoute requiredRole="admin">
           <SetChandaType />
+        </ProtectedRoute>
+      } />
+      <Route path="/admin/edit-user/:userId" element={
+        <ProtectedRoute requiredRole="admin">
+          <EditUser />
         </ProtectedRoute>
       } />
     </Routes>
