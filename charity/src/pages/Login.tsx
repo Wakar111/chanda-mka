@@ -116,12 +116,14 @@ export default function Login() {
           </button>
         </form>
 
-        <p className="mt-6 text-center text-sm text-gray-600">
-          Don’t have an account?{" "}
-          <a href="#" className="text-blue-600 hover:underline">
-            Sign up
-          </a>
-        </p>
+        <div className="mt-6 text-center">
+          <button
+            onClick={() => navigate('/forgot-password')}
+            className="text-sm text-blue-600 hover:underline"
+          >
+            Passwort vergessen?
+          </button>
+        </div>
       </div>
     </div>
   )

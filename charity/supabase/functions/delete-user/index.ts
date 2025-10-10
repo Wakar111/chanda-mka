@@ -1,3 +1,7 @@
+// delete-user.ts is a function that allows admins to delete users from users auth table from the database
+// It is called from the admin panel
+// This function is deployed on supabase as edge functions
+
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 

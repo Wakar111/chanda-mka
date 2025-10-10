@@ -1,6 +1,8 @@
 import './App.css'
 import Login from "./pages/Login";
 import ResetPassword from "./pages/ResetPassword";
+import ForgotPassword from "./pages/ForgotPassword";
+import ChangePassword from "./pages/ChangePassword";
 import { Routes, Route, Navigate } from "react-router-dom";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -23,12 +25,18 @@ function App() {
     <Routes>
       <Route path="/" element={<Navigate to="/login" replace />} />
       <Route path="/login" element={<Login />} />
+      <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/reset-password" element={<ResetPassword />} />
       
       {/* Shared Routes */}
       <Route path="/profile" element={
         <ProtectedRoute requiredRole={['admin', 'user']}>
           <Profile />
+        </ProtectedRoute>
+      } />
+      <Route path="/change-password" element={
+        <ProtectedRoute requiredRole={['admin', 'user']}>
+          <ChangePassword />
         </ProtectedRoute>
       } />
 
