@@ -70,7 +70,7 @@ export default function ChandaCard({ chanda, payments }: ChandaCardProps) {
 
         <div className="flex justify-between items-center mt-4">
           <span className="text-sm text-gray-600">
-            Due date: {formatDate(chanda.spende_ends)}
+            Due date: {chanda.spende_ends ? formatDate(chanda.spende_ends) : '-'}
           </span>
           <button
             className="text-blue-600 hover:text-blue-800"
