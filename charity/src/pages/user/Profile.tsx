@@ -80,9 +80,12 @@ export default function Profile() {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return;
 
+      // Remove role and id from formData to prevent users from changing them
+      const { role, id, ...updateData } = formData as any;
+
       const { error } = await supabase
         .from('users')
-        .update(formData)
+        .update(updateData)
         .eq('id', session.user.id);
 
       if (error) throw error;
