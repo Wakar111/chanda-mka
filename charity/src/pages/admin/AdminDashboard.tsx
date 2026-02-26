@@ -14,6 +14,7 @@ interface User {
   email: string;
   phone: number;
   role: string;
+  musi: boolean;
 }
 
 export default function AdminDashboard() {
@@ -60,7 +61,7 @@ export default function AdminDashboard() {
 
       const { data, error } = await supabase
         .from('users')
-        .select('id, jamaatID, name, surname, jamaat, email, role, phone')
+        .select('id, jamaatID, name, surname, jamaat, email, role, phone, musi')
         .order('jamaat', { ascending: true })
         .order('name', { ascending: true });
 
@@ -155,6 +156,9 @@ export default function AdminDashboard() {
                         Phone
                       </th>
                       <th className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Musi
+                      </th>
+                      <th className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Role
                       </th>
                     </tr>
@@ -181,6 +185,9 @@ export default function AdminDashboard() {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                           {user.phone}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {user.musi ? 'Ja' : 'Nein'}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                           {user.role}

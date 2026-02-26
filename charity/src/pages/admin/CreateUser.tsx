@@ -22,6 +22,7 @@ interface CreateUserForm {
   name: string;
   surname: string;
   date_of_birth: string;
+  musi: boolean;
   phone: string;
   address: string;
   profession: string;
@@ -37,6 +38,7 @@ export default function CreateUser() {
     name: '',
     surname: '',
     date_of_birth: '',
+    musi: false,
     phone: '',
     address: '',
     profession: '',
@@ -115,6 +117,7 @@ export default function CreateUser() {
             surname: formData.surname,
             date_of_birth: formData.date_of_birth,
             age: calculateAge(formData.date_of_birth),
+            musi: formData.musi,
             phone: phoneNumber,
             address: formData.address,
             profession: formData.profession,
@@ -150,6 +153,7 @@ export default function CreateUser() {
         name: '',
         surname: '',
         date_of_birth: '',
+        musi: false,
         phone: '',
         address: '',
         profession: '',
@@ -180,14 +184,18 @@ export default function CreateUser() {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    if (name === 'musi') {
+      setFormData(prev => ({ ...prev, [name]: value === 'ja' }));
+    } else {
+      setFormData(prev => ({ ...prev, [name]: value }));
+    }
   };
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-100">
       <Navbar />
       <div className="flex-grow p-8">
-        <div className="max-w-2xl mx-auto">
+        <div className="max-w-4xl mx-auto">
           <div className="bg-white rounded-lg shadow-md p-6">
             <h1 className="text-2xl font-bold text-gray-800 mb-6">
               Create New User
@@ -278,20 +286,37 @@ export default function CreateUser() {
                 </div>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Date of Birth
-                </label>
-                <input
-                  type="date"
-                  name="date_of_birth"
-                  value={formData.date_of_birth}
-                  onChange={handleChange}
-                  required
-                  max={new Date().toISOString().split('T')[0]}
-                  className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                />
-                <p className="mt-1 text-sm text-gray-500">Date of birth cannot be in the future</p>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Date of Birth
+                  </label>
+                  <input
+                    type="date"
+                    name="date_of_birth"
+                    value={formData.date_of_birth}
+                    onChange={handleChange}
+                    required
+                    max={new Date().toISOString().split('T')[0]}
+                    className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                  />
+                  <p className="mt-1 text-sm text-gray-500">Date of birth cannot be in the future</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Musi
+                  </label>
+                  <select
+                    name="musi"
+                    value={formData.musi ? 'ja' : 'nein'}
+                    onChange={handleChange}
+                    required
+                    className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                  >
+                    <option value="nein">Nein</option>
+                    <option value="ja">Ja</option>
+                  </select>
+                </div>
               </div>
 
               <div>

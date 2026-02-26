@@ -67,6 +67,7 @@ export default function Navbar() {
                     <Link to="/admin" className="hover:text-gray-300">Dashboard</Link>
                     <Link to="/admin/create-user" className="hover:text-gray-300">Create User</Link>
                     <Link to="/admin/charity-promise" className="hover:text-gray-300">Set Charity Promise</Link>
+                    <Link to="/admin/set-chanda-type" className="hover:text-gray-300">Set Chanda Type</Link>
                     
                     {/* Admin Profile Dropdown */}
                     <div className="relative inline-block" ref={dropdownRef}>
@@ -99,13 +100,6 @@ export default function Navbar() {
                                     onClick={() => setIsDropdownOpen(false)}
                                 >
                                     Passwort ändern
-                                </Link>
-                                <Link
-                                    to="/admin/set-chanda-type"
-                                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                                    onClick={() => setIsDropdownOpen(false)}
-                                >
-                                    Set Chanda Type
                                 </Link>
                                 <button
                                     onClick={() => {

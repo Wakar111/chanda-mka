@@ -18,6 +18,7 @@ interface UserData {
   address: string;
   profession: string;
   role: 'admin' | 'user';
+  musi: boolean;
 }
 
 export default function EditUser() {
@@ -39,7 +40,8 @@ export default function EditUser() {
     phone: '',
     address: '',
     profession: '',
-    role: 'user'
+    role: 'user',
+    musi: false
   });
 
   // Auto-dismiss status messages after 5 seconds
@@ -78,6 +80,7 @@ export default function EditUser() {
           address: data.address || '',
           profession: data.profession || '',
           jamaatID: data.jamaatID || '',
+          musi: data.musi || false,
           jamaat: data.jamaat || '',
           name: data.name || '',
           surname: data.surname || '',
@@ -104,9 +107,9 @@ export default function EditUser() {
     }
 
     const normalizedPhone = String(userData.phone).replace(/\s+/g, '');
-    const phoneRegex = /^(\+49|0)[1-9][0-9]{8,14}$/;
+    const phoneRegex = /^(\+49[1-9][0-9]{9,13}|0[1-9][0-9]{8,14})$/;
     if (!phoneRegex.test(normalizedPhone)) {
-      return { isValid: false, message: 'Bitte geben Sie eine gültige deutsche Telefonnummer ein' };
+      return { isValid: false, message: 'Bitte geben Sie eine gültige deutsche Telefonnummer ein (z.B. 0175... oder +49175...)' };
     }
 
     const today = new Date();
@@ -120,7 +123,9 @@ export default function EditUser() {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setUserData(prev => ({ ...prev, [name]: value }));
+    // Convert 'true'/'false' string to boolean for musi field
+    const processedValue = name === 'musi' ? value === 'true' : value;
+    setUserData(prev => ({ ...prev, [name]: processedValue }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -136,8 +141,8 @@ export default function EditUser() {
     setSaving(true);
 
     try {
-      // Convert phone string back to number for database
-      const phoneNumber = userData.phone ? parseInt(userData.phone.replace(/\s+/g, ''), 10) : null;
+      // Keep phone as text to preserve leading zeros and +49 format
+      const phoneText = userData.phone ? userData.phone.replace(/\s+/g, '') : null;
       
       const { error } = await supabase
         .from('users')
@@ -149,10 +154,11 @@ export default function EditUser() {
           surname: userData.surname,
           date_of_birth: userData.date_of_birth,
           age: calculateAge(userData.date_of_birth),
-          phone: phoneNumber,
+          phone: phoneText,
           address: userData.address,
           profession: userData.profession,
-          role: userData.role
+          role: userData.role,
+          musi: userData.musi
         })
         .eq('id', userId);
 
@@ -365,19 +371,36 @@ export default function EditUser() {
                 </div>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Date of Birth
-                </label>
-                <input
-                  type="date"
-                  name="date_of_birth"
-                  value={userData.date_of_birth}
-                  onChange={handleChange}
-                  required
-                  max={new Date().toISOString().split('T')[0]}
-                  className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                />
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Date of Birth
+                  </label>
+                  <input
+                    type="date"
+                    name="date_of_birth"
+                    value={userData.date_of_birth}
+                    onChange={handleChange}
+                    required
+                    max={new Date().toISOString().split('T')[0]}
+                    className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Musi
+                  </label>
+                  <select
+                    name="musi"
+                    value={userData.musi.toString()}
+                    onChange={handleChange}
+                    required
+                    className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                  >
+                    <option value="true">Ja</option>
+                    <option value="false">Nein</option>
+                  </select>
+                </div>
               </div>
 
               <div>

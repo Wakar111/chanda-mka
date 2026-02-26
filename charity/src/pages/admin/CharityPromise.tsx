@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { supabase } from '../../supabaseClient';
 import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
@@ -11,6 +11,7 @@ interface User {
   email: string;
   jamaat: string;
   phone: string;
+  musi: boolean;
   profession: string;
 }
 
@@ -82,6 +83,11 @@ interface NewPromiseForm {
   payment_date: string;
 }
 
+interface IncomeBudgetForm {
+  monthly_income: string;
+  is_musi: boolean;
+}
+
 export default function CharityPromise() {
   const [searchJamaatID, setSearchJamaatID] = useState('');
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
@@ -106,6 +112,14 @@ export default function CharityPromise() {
   const [deletingPromiseId, setDeletingPromiseId] = useState<string | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [promiseToDelete, setPromiseToDelete] = useState<string | null>(null);
+  const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const [activeTab, setActiveTab] = useState<'income' | 'manual'>('income');
+  const [incomeBudgetForm, setIncomeBudgetForm] = useState<IncomeBudgetForm>({
+    monthly_income: '',
+    is_musi: false
+  });
 
   // Auto-dismiss status messages after 5 seconds
   useEffect(() => {
@@ -117,6 +131,83 @@ export default function CharityPromise() {
     }
   }, [status]);
 
+  // Handle click outside to close dropdown
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setShowDropdown(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // Search users by Jamaat ID prefix
+  const searchUsersByPrefix = async (prefix: string) => {
+    const prefixStr = String(prefix || '');
+    if (!prefixStr.trim()) {
+      setFilteredUsers([]);
+      setShowDropdown(false);
+      return;
+    }
+
+    try {
+      // Fetch all users with role 'user' and filter client-side since jamaatID is int8
+      const { data, error } = await supabase
+        .from('users')
+        .select('id, jamaatID, name, surname, email, jamaat, phone, profession, musi')
+        .eq('role', 'user');
+
+      if (error) throw error;
+
+      // Filter by jamaatID prefix on client side
+      const filtered = (data || [])
+        .filter(user => String(user.jamaatID).startsWith(prefixStr))
+        .slice(0, 10);
+
+      setFilteredUsers(filtered);
+      setShowDropdown(filtered.length > 0);
+    } catch (error) {
+      console.error('Error searching users:', error);
+      setFilteredUsers([]);
+      setShowDropdown(false);
+    }
+  };
+
+  // Handle input change with debouncing
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      searchUsersByPrefix(searchJamaatID);
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [searchJamaatID]);
+
+  const selectUser = async (user: User) => {
+    setSearchJamaatID(user.jamaatID);
+    setShowDropdown(false);
+    setFilteredUsers([]);
+    setLoading(true);
+    setStatus(null);
+    setSelectedUser(null);
+    setUserPromises([]);
+
+    try {
+      setSelectedUser(user);
+      await fetchChandaTypes();
+      const promises = await fetchUserPromises(user.id);
+      const years = [...new Set(promises.map(p => p.year))].sort((a, b) => b - a);
+      setAvailableYears(years);
+      setSelectedYear(years[0] || new Date().getFullYear());
+    } catch (error) {
+      console.error('Error loading user data:', error);
+      setStatus({ type: 'error', message: 'Fehler beim Laden der Benutzerdaten' });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const searchUser = async () => {
     if (!searchJamaatID.trim()) {
       setStatus({ type: 'error', message: 'Bitte geben Sie eine Jamaat ID ein' });
@@ -127,11 +218,12 @@ export default function CharityPromise() {
     setStatus(null);
     setSelectedUser(null);
     setUserPromises([]);
+    setShowDropdown(false);
 
     try {
       const { data, error } = await supabase
         .from('users')
-        .select('id, jamaatID, name, surname, email, jamaat, phone, profession')
+        .select('id, jamaatID, name, surname, email, jamaat, phone, profession, musi')
         .eq('role', 'user')
         .eq('jamaatID', searchJamaatID)
         .limit(1);
@@ -298,18 +390,24 @@ export default function CharityPromise() {
   };
 
   const openNewPromiseModal = () => {
+    setActiveTab('income');
     setNewPromiseForm({
       chanda_type_id: '',
       promise: '',
       spende_ends: '',
       paid_amount: '',
       payment_date: ''
+    });
+    setIncomeBudgetForm({
+      monthly_income: '',
+      is_musi: selectedUser?.musi || false
     });
     setShowNewPromiseModal(true);
   };
 
   const closeNewPromiseModal = () => {
     setShowNewPromiseModal(false);
+    setActiveTab('income');
     setNewPromiseForm({
       chanda_type_id: '',
       promise: '',
@@ -317,6 +415,126 @@ export default function CharityPromise() {
       paid_amount: '',
       payment_date: ''
     });
+    setIncomeBudgetForm({
+      monthly_income: '',
+      is_musi: false
+    });
+  };
+
+  const calculatePromisesFromIncome = (monthlyIncome: number, isMusi: boolean) => {
+    const contributions: { name: string; percentage: number; applies: boolean }[] = [
+      { name: 'Hissa Amad', percentage: 10, applies: isMusi },
+      { name: 'Chanda Aam', percentage: 6.25, applies: !isMusi },
+      { name: 'Jalsa Salana', percentage: 0.833, applies: true },
+      { name: 'Majlis', percentage: 1, applies: true },
+      { name: 'Ijtema', percentage: 0.208, applies: true },
+      { name: 'Ishaat', percentage: 0.2, applies: true }
+    ];
+
+    return contributions
+      .filter(c => c.applies)
+      .map(c => ({
+        name: c.name,
+        amount: Number(((monthlyIncome * c.percentage) / 100).toFixed(2))
+      }));
+  };
+
+  const handleCreateIncomeBudget = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!selectedUser) {
+      setStatus({ type: 'error', message: 'Kein Benutzer ausgewählt' });
+      return;
+    }
+
+    const monthlyIncome = Number(incomeBudgetForm.monthly_income);
+    if (isNaN(monthlyIncome) || monthlyIncome <= 0) {
+      setStatus({ type: 'error', message: 'Bitte ein gültiges Monatseinkommen eingeben' });
+      return;
+    }
+
+    setSavingNewPromise(true);
+    setStatus(null);
+
+    try {
+      const calculatedPromises = calculatePromisesFromIncome(monthlyIncome, incomeBudgetForm.is_musi);
+      const currentYear = new Date().getFullYear();
+
+      const missingTypes: string[] = [];
+      for (const promise of calculatedPromises) {
+        const chandaType = chandaTypes.find(ct => ct.name === promise.name);
+        if (!chandaType) {
+          missingTypes.push(promise.name);
+        }
+      }
+
+      if (missingTypes.length > 0) {
+        setStatus({ 
+          type: 'error', 
+          message: `Folgende Chanda-Typen fehlen in der Datenbank: ${missingTypes.join(', ')}. Bitte legen Sie diese zuerst unter "Chanda-Typ festlegen" an.` 
+        });
+        setSavingNewPromise(false);
+        return;
+      }
+
+      // Check for existing promises for this year
+      const chandaTypeIds = calculatedPromises
+        .map(p => chandaTypes.find(ct => ct.name === p.name)?.id)
+        .filter(id => id !== undefined);
+
+      const { data: existingPromises, error: checkError } = await supabase
+        .from('promises')
+        .select('chanda_type_id, chanda_types(name)')
+        .eq('user_id', selectedUser.id)
+        .eq('year', currentYear)
+        .in('chanda_type_id', chandaTypeIds);
+
+      if (checkError) throw checkError;
+
+      if (existingPromises && existingPromises.length > 0) {
+        const existingTypeNames = existingPromises
+          .map((p: any) => p.chanda_types?.name)
+          .filter(Boolean)
+          .join(', ');
+        
+        setStatus({ 
+          type: 'error', 
+          message: `Für das Jahr ${currentYear} existieren bereits Versprechen für folgende Typen: ${existingTypeNames}. Bitte löschen Sie diese zuerst oder verwenden Sie den manuellen Modus.` 
+        });
+        setSavingNewPromise(false);
+        return;
+      }
+
+      for (const promise of calculatedPromises) {
+        const chandaType = chandaTypes.find(ct => ct.name === promise.name);
+        
+        const { error: promiseError } = await supabase
+          .from('promises')
+          .insert({
+            user_id: selectedUser.id,
+            chanda_type_id: chandaType!.id,
+            year: currentYear,
+            promise: promise.amount
+          });
+
+        if (promiseError) throw promiseError;
+      }
+
+      setStatus({ type: 'success', message: 'Jahresbudget erfolgreich erstellt' });
+      closeNewPromiseModal();
+      
+      const promises = await fetchUserPromises(selectedUser.id);
+      const years = [...new Set(promises.map(p => p.year))].sort((a, b) => b - a);
+      setAvailableYears(years);
+      if (!years.includes(currentYear)) {
+        setSelectedYear(currentYear);
+      }
+    } catch (error) {
+      console.error('Error creating income budget:', error);
+      setStatus({ type: 'error', message: 'Fehler beim Erstellen des Jahresbudgets' });
+    } finally {
+      setSavingNewPromise(false);
+    }
   };
 
   const handleCreatePromise = async (e: React.FormEvent) => {
@@ -344,11 +562,34 @@ export default function CharityPromise() {
         return;
       }
 
+      const currentYear = new Date().getFullYear();
+
+      // Check if promise already exists for this chanda type and year
+      const { data: existingPromise, error: checkError } = await supabase
+        .from('promises')
+        .select('id, chanda_types(name)')
+        .eq('user_id', selectedUser.id)
+        .eq('chanda_type_id', newPromiseForm.chanda_type_id)
+        .eq('year', currentYear)
+        .maybeSingle();
+
+      if (checkError) throw checkError;
+
+      if (existingPromise) {
+        const chandaTypeName = (existingPromise as any).chanda_types?.name || 'diesem Typ';
+        setStatus({ 
+          type: 'error', 
+          message: `Für das Jahr ${currentYear} existiert bereits ein Versprechen für ${chandaTypeName}. Bitte löschen Sie das bestehende Versprechen zuerst.` 
+        });
+        setSavingNewPromise(false);
+        return;
+      }
+
       // Create the promise
       const promiseInsert: any = {
         user_id: selectedUser.id,
         chanda_type_id: newPromiseForm.chanda_type_id,
-        year: selectedYear,
+        year: currentYear,
         promise: promiseAmount
       };
 
@@ -366,13 +607,15 @@ export default function CharityPromise() {
       if (promiseError) throw promiseError;
 
       // If there's a payment amount, create the payment
-      if (paidAmount > 0 && newPromiseForm.payment_date) {
+      if (paidAmount > 0) {
+        const paymentDate = newPromiseForm.payment_date || new Date().toISOString().split('T')[0];
+        
         const { error: paymentError } = await supabase
           .from('payments')
           .insert({
             promise_id: promiseData.id,
             amount: paidAmount,
-            payment_date: newPromiseForm.payment_date
+            payment_date: paymentDate
           });
 
         if (paymentError) throw paymentError;
@@ -456,7 +699,7 @@ export default function CharityPromise() {
     <div className="min-h-screen flex flex-col bg-gray-100">
       <Navbar />
       <div className="flex-grow p-8">
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-6xl mx-auto">
           <div className="bg-white rounded-lg shadow-md p-6">
             <h1 className="text-2xl font-bold text-gray-800 mb-6">
               Chanda Versprechen festlegen
@@ -478,24 +721,57 @@ export default function CharityPromise() {
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Jamaat ID
               </label>
-              <div className="flex space-x-4">
-                <input
-                  type="text"
-                  value={searchJamaatID}
-                  onChange={(e) => setSearchJamaatID(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && searchUser()}
-                  placeholder="Jamaat ID eingeben..."
-                  className="flex-1 rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                  disabled={loading}
-                />
-                <button
-                  type="button"
-                  onClick={searchUser}
-                  disabled={loading}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 disabled:opacity-50 transition-colors"
-                >
-                  {loading ? 'Suche...' : 'Suchen'}
-                </button>
+              <div className="relative" ref={dropdownRef}>
+                <div className="flex space-x-4">
+                  <input
+                    type="text"
+                    value={searchJamaatID}
+                    onChange={(e) => setSearchJamaatID(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && searchUser()}
+                    placeholder="Jamaat ID eingeben..."
+                    className="flex-1 rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                    disabled={loading}
+                    onFocus={() => {
+                      if (String(searchJamaatID || '').trim() && filteredUsers.length > 0) {
+                        setShowDropdown(true);
+                      }
+                    }}
+                  />
+                  <button
+                    type="button"
+                    onClick={searchUser}
+                    disabled={loading}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 disabled:opacity-50 transition-colors"
+                  >
+                    {loading ? 'Suche...' : 'Suchen'}
+                  </button>
+                </div>
+                
+                {showDropdown && filteredUsers.length > 0 && (
+                  <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                    {filteredUsers.map((user) => (
+                      <div
+                        key={user.id}
+                        onClick={() => selectUser(user)}
+                        className="px-4 py-3 hover:bg-blue-50 cursor-pointer border-b border-gray-100 last:border-b-0"
+                      >
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <p className="font-medium text-gray-900">
+                              {user.name} {user.surname}
+                            </p>
+                            <p className="text-sm text-gray-600">
+                              Jamaat ID: <span className="font-semibold">{user.jamaatID}</span>
+                            </p>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-sm text-gray-500">{user.jamaat}</p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
 
@@ -523,6 +799,10 @@ export default function CharityPromise() {
                     <div>
                       <p className="text-sm text-gray-500">Beruf</p>
                       <p className="font-medium">{selectedUser.profession}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">Musi</p>
+                      <p className="font-medium">{selectedUser.musi ? 'Ja' : 'Nein'}</p>
                     </div>
                   </div>
                 </div>
@@ -741,7 +1021,131 @@ export default function CharityPromise() {
                 </button>
               </div>
 
-              <form onSubmit={handleCreatePromise} className="space-y-4">
+              {/* Tabs */}
+              <div className="flex border-b border-gray-200 mb-6">
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('income')}
+                  className={`px-4 py-2 font-medium text-sm border-b-2 transition-colors ${
+                    activeTab === 'income'
+                      ? 'border-blue-500 text-blue-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700'
+                  }`}
+                >
+                  Einkommen Budget
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('manual')}
+                  className={`px-4 py-2 font-medium text-sm border-b-2 transition-colors ${
+                    activeTab === 'manual'
+                      ? 'border-blue-500 text-blue-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700'
+                  }`}
+                >
+                  Manuell
+                </button>
+              </div>
+
+              {/* Status Message */}
+              {status && (
+                <div
+                  className={`mb-4 p-4 rounded-lg ${
+                    status.type === 'success'
+                      ? 'bg-green-50 text-green-700 border border-green-200'
+                      : 'bg-red-50 text-red-700 border border-red-200'
+                  }`}
+                >
+                  {status.message}
+                </div>
+              )}
+
+              {/* Income Budget Tab */}
+              {activeTab === 'income' && (
+                <form onSubmit={handleCreateIncomeBudget} className="space-y-4">
+                  <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-4">
+                    <div className="flex items-start">
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5 text-amber-600 mr-2 mt-0.5 flex-shrink-0">
+                        <path fillRule="evenodd" d="M9.401 3.003c1.155-2 4.043-2 5.197 0l7.355 12.748c1.154 2-.29 4.5-2.599 4.5H4.645c-2.309 0-3.752-2.5-2.598-4.5L9.4 3.003ZM12 8.25a.75.75 0 0 1 .75.75v3.75a.75.75 0 0 1-1.5 0V9a.75.75 0 0 1 .75-.75Zm0 8.25a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Z" clipRule="evenodd" />
+                      </svg>
+                      <div className="text-xs text-amber-800">
+                        <p className="font-semibold mb-1">Hinweis:</p>
+                        <p>Stellen Sie sicher, dass alle benötigten Chanda-Typen (Musi, Chanda Aam, Jalsa Salana, Majlis, Ijtema, Ishaat) bereits unter "Chanda-Typ festlegen" angelegt wurden.</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Monatseinkommen (€) <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="number"
+                      value={incomeBudgetForm.monthly_income}
+                      onChange={(e) => setIncomeBudgetForm(prev => ({ ...prev, monthly_income: e.target.value }))}
+                      required
+                      min="0"
+                      step="0.01"
+                      placeholder="1000.00"
+                      className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Musi Status
+                    </label>
+                    <select
+                      value={incomeBudgetForm.is_musi ? 'ja' : 'nein'}
+                      onChange={(e) => setIncomeBudgetForm(prev => ({ ...prev, is_musi: e.target.value === 'ja' }))}
+                      className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                    >
+                      <option value="nein">Nein</option>
+                      <option value="ja">Ja</option>
+                    </select>
+                    <p className="mt-1 text-xs text-gray-500">
+                      {incomeBudgetForm.is_musi 
+                        ? 'Musi-Mitglied zahlt: Musi (10%), Jalsa Salana, Majlis, Ijtema, Ishaat'
+                        : 'Kein Musi zahlt: Chanda Aam (6,25%), Jalsa Salana, Majlis, Ijtema, Ishaat'}
+                    </p>
+                  </div>
+
+                  {incomeBudgetForm.monthly_income && Number(incomeBudgetForm.monthly_income) > 0 && (
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                      <h3 className="font-semibold text-gray-800 mb-3">Berechnete Beiträge:</h3>
+                      <div className="space-y-2">
+                        {calculatePromisesFromIncome(Number(incomeBudgetForm.monthly_income), incomeBudgetForm.is_musi).map((item, idx) => (
+                          <div key={idx} className="flex justify-between text-sm">
+                            <span className="text-gray-700">{item.name}:</span>
+                            <span className="font-semibold text-gray-900">{item.amount.toFixed(2)} €</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="flex justify-end space-x-3 pt-4">
+                    <button
+                      type="button"
+                      onClick={closeNewPromiseModal}
+                      className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                    >
+                      Abbrechen
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={savingNewPromise}
+                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
+                    >
+                      {savingNewPromise ? 'Erstelle...' : 'Spenden erstellen'}
+                    </button>
+                  </div>
+                </form>
+              )}
+
+              {/* Manual Promise Tab */}
+              {activeTab === 'manual' && (
+                <form onSubmit={handleCreatePromise} className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Chanda Typ <span className="text-red-500">*</span>
@@ -841,6 +1245,7 @@ export default function CharityPromise() {
                   </button>
                 </div>
               </form>
+              )}
             </div>
           </div>
         </div>

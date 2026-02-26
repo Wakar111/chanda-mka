@@ -11,6 +11,7 @@ interface UserInfo {
   jamaatID: string;
   jamaat: string;
   role: string;
+  musi: boolean;
 }
 
 interface Payment {
@@ -84,7 +85,7 @@ export default function Home() {
 
       const { data, error } = await supabase
         .from('users')
-        .select('name, surname, jamaatID, jamaat, role')
+        .select('name, surname, jamaatID, jamaat, role, musi')
         .eq('id', session.user.id)
         .single();
 
@@ -197,6 +198,10 @@ export default function Home() {
                 <div>
                   <label className="text-sm font-medium text-gray-600">Role</label>
                   <p className="text-gray-800 font-semibold capitalize">{userInfo.role}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-600">Musi</label>
+                  <p className="text-gray-800 font-semibold">{userInfo.musi ? 'Ja' : 'Nein'}</p>
                 </div>
               </div>
             </div>
