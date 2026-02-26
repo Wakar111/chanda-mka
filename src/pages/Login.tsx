@@ -124,6 +124,10 @@ export default function Login() {
             Passwort vergessen?
           </button>
         </div>
+        {/* small text with admin account in the center */}
+        <p className="text-sm text-gray-600 mt-2 text-center">
+          Admin Account: admin@example.com / admin123
+        </p>
       </div>
     </div>
   )
