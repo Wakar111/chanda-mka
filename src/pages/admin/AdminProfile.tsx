@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../../supabaseClient';
-import Navbar from '../../components/Navbar';
-import Footer from '../../components/Footer';
+import AdminLayout from '../../components/AdminLayout';
 import { calculateAge } from '../../utils/dateUtils';
 
 interface UserProfile {
@@ -19,7 +18,7 @@ interface UserProfile {
   gender: 'male' | 'female' | '';
 }
 
-export default function Profile() {
+export default function AdminProfile() {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
@@ -30,7 +29,6 @@ export default function Profile() {
     fetchProfile();
   }, []);
 
-  // 👉 Effect 2: auto-hide message after 5s
   useEffect(() => {
     if (message.text) {
       const timer = setTimeout(() => {
@@ -102,20 +100,17 @@ export default function Profile() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex flex-col bg-gray-100">
-        <Navbar />
-        <div className="flex-grow flex items-center justify-center">
+      <AdminLayout>
+        <div className="flex items-center justify-center h-full">
           <div className="text-gray-600">Loading...</div>
         </div>
-        <Footer />
-      </div>
+      </AdminLayout>
     );
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-100">
-      <Navbar />
-      <div className="flex-grow p-8">
+    <AdminLayout>
+      <div className="p-8">
         <div className="max-w-2xl mx-auto">
           <div className="bg-white rounded-lg shadow-md p-6">
             <div className="flex justify-between items-center mb-6">
@@ -358,7 +353,6 @@ export default function Profile() {
           </div>
         </div>
       </div>
-      <Footer />
-    </div>
+    </AdminLayout>
   );
 }

@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../../supabaseClient';
 import { useParams, useNavigate } from 'react-router-dom';
-import Navbar from '../../components/Navbar';
-import Footer from '../../components/Footer';
+import AdminLayout from '../../components/AdminLayout';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import { calculateAge } from '../../utils/dateUtils';
 
@@ -19,6 +18,7 @@ interface UserData {
   profession: string;
   role: 'admin' | 'user';
   musi: boolean;
+  gender: 'male' | 'female' | '';
 }
 
 export default function EditUser() {
@@ -41,7 +41,8 @@ export default function EditUser() {
     address: '',
     profession: '',
     role: 'user',
-    musi: false
+    musi: false,
+    gender: 'male'
   });
 
   // Auto-dismiss status messages after 5 seconds
@@ -84,7 +85,8 @@ export default function EditUser() {
           jamaat: data.jamaat || '',
           name: data.name || '',
           surname: data.surname || '',
-          email: data.email || ''
+          email: data.email || '',
+          gender: data.gender || 'male'
         };
         setUserData(formattedData);
       }
@@ -158,7 +160,8 @@ export default function EditUser() {
           address: userData.address,
           profession: userData.profession,
           role: userData.role,
-          musi: userData.musi
+          musi: userData.musi,
+          gender: userData.gender || null
         })
         .eq('id', userId);
 
@@ -258,20 +261,17 @@ export default function EditUser() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex flex-col bg-gray-100">
-        <Navbar />
-        <div className="flex-grow flex items-center justify-center">
+      <AdminLayout>
+        <div className="flex items-center justify-center h-full">
           <LoadingSpinner />
         </div>
-        <Footer />
-      </div>
+      </AdminLayout>
     );
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-100">
-      <Navbar />
-      <div className="flex-grow p-8">
+    <AdminLayout>
+      <div className="p-8">
         <div className="max-w-2xl mx-auto">
           <div className="bg-white rounded-lg shadow-md p-6">
             <div className="flex justify-between items-center mb-6">
@@ -403,19 +403,35 @@ export default function EditUser() {
                 </div>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Phone
-                </label>
-                <input
-                  type="tel"
-                  name="phone"
-                  value={userData.phone}
-                  onChange={handleChange}
-                  required
-                  placeholder="017854585678"
-                  className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                />
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Phone
+                  </label>
+                  <input
+                    type="tel"
+                    name="phone"
+                    value={userData.phone}
+                    onChange={handleChange}
+                    required
+                    placeholder="017854585678"
+                    className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Gender
+                  </label>
+                  <select
+                    name="gender"
+                    value={userData.gender}
+                    onChange={handleChange}
+                    className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                  >
+                    <option value="male">Male</option>
+                    <option value="female">Female</option>
+                  </select>
+                </div>
               </div>
 
               <div>
@@ -483,7 +499,6 @@ export default function EditUser() {
           </div>
         </div>
       </div>
-      <Footer />
 
       {/* Delete Confirmation Modal */}
       {showDeleteConfirm && (
@@ -524,6 +539,6 @@ export default function EditUser() {
           </div>
         </div>
       )}
-    </div>
+    </AdminLayout>
   );
 }

@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../../supabaseClient';
-import Navbar from '../../components/Navbar';
-import Footer from '../../components/Footer';
+import AdminLayout from '../../components/AdminLayout';
 import LoadingSpinner from '../../components/LoadingSpinner';
 
 interface ChandaType {
@@ -163,9 +162,8 @@ export default function SetChandaType() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-100">
-      <Navbar />
-      <div className="flex-grow p-8">
+    <AdminLayout>
+      <div className="p-8">
         <div className="max-w-4xl mx-auto">
           <div className="bg-white rounded-lg shadow-md p-6 mb-6">
             <h1 className="text-2xl font-bold text-gray-800 mb-6">
@@ -362,7 +360,6 @@ export default function SetChandaType() {
           </div>
         </div>
       </div>
-      <Footer />
 
       {/* Delete Confirmation Modal */}
       {showDeleteModal && (
@@ -405,6 +402,6 @@ export default function SetChandaType() {
           </div>
         </div>
       )}
-    </div>
+    </AdminLayout>
   );
 }

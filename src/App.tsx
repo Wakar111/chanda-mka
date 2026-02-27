@@ -18,6 +18,10 @@ import CreateUser from "./pages/admin/CreateUser";
 import CharityPromise from "./pages/admin/CharityPromise";
 import SetChandaType from "./pages/admin/SetChandaType";
 import EditUser from "./pages/admin/EditUser";
+import MembersPage from "./pages/admin/MembersPage";
+import AdminProfile from "./pages/admin/AdminProfile";
+import AdminChangePassword from "./pages/admin/AdminChangePassword";
+import Settings from "./pages/admin/Settings";
 
 function App() {
 
@@ -61,6 +65,26 @@ function App() {
       <Route path="/admin" element={
         <ProtectedRoute requiredRole="admin">
           <AdminDashboard />
+        </ProtectedRoute>
+      } />
+      <Route path="/admin/members" element={
+        <ProtectedRoute requiredRole="admin">
+          <MembersPage />
+        </ProtectedRoute>
+      } />
+      <Route path="/admin/profile" element={
+        <ProtectedRoute requiredRole="admin">
+          <AdminProfile />
+        </ProtectedRoute>
+      } />
+      <Route path="/admin/change-password" element={
+        <ProtectedRoute requiredRole="admin">
+          <AdminChangePassword />
+        </ProtectedRoute>
+      } />
+      <Route path="/admin/settings" element={
+        <ProtectedRoute requiredRole="admin">
+          <Settings />
         </ProtectedRoute>
       } />
       <Route path="/admin/create-user" element={

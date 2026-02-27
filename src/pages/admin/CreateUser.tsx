@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { supabase } from '../../supabaseClient';
-import Navbar from '../../components/Navbar';
-import Footer from '../../components/Footer';
+import AdminLayout from '../../components/AdminLayout';
 import { calculateAge } from '../../utils/dateUtils';
 
 // Function to generate a random password
@@ -27,6 +26,7 @@ interface CreateUserForm {
   address: string;
   profession: string;
   role: 'admin' | 'user';
+  gender: 'male' | 'female' | '';
 }
 
 export default function CreateUser() {
@@ -42,7 +42,8 @@ export default function CreateUser() {
     phone: '',
     address: '',
     profession: '',
-    role: 'user'
+    role: 'user',
+    gender: 'male'
   });
   const [status, setStatus] = useState<{ type: string; message: string } | null>(null);
 
@@ -121,7 +122,8 @@ export default function CreateUser() {
             phone: phoneNumber,
             address: formData.address,
             profession: formData.profession,
-            role: formData.role
+            role: formData.role,
+            gender: formData.gender || null
           }
         ]);
 
@@ -157,7 +159,8 @@ export default function CreateUser() {
         phone: '',
         address: '',
         profession: '',
-        role: 'user'
+        role: 'user',
+        gender: 'male'
       });
     } catch (error: any) {
       console.error('Error creating user:', error);
@@ -192,9 +195,8 @@ export default function CreateUser() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-100">
-      <Navbar />
-      <div className="flex-grow p-8">
+    <AdminLayout>
+      <div className="p-8">
         <div className="max-w-4xl mx-auto">
           <div className="bg-white rounded-lg shadow-md p-6">
             <h1 className="text-2xl font-bold text-gray-800 mb-6">
@@ -319,20 +321,36 @@ export default function CreateUser() {
                 </div>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Phone
-                </label>
-                <input
-                  type="tel"
-                  name="phone"
-                  value={formData.phone}
-                  onChange={handleChange}
-                  required
-                  placeholder="017854585678"
-                  className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                />
-                <p className="mt-1 text-sm text-gray-500">Enter phone number (e.g., 017854585678 or +4917854585678)</p>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Phone
+                  </label>
+                  <input
+                    type="tel"
+                    name="phone"
+                    value={formData.phone}
+                    onChange={handleChange}
+                    required
+                    placeholder="017854585678"
+                    className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                  />
+                  <p className="mt-1 text-sm text-gray-500">Enter phone number (e.g., 017854585678 or +4917854585678)</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Gender
+                  </label>
+                  <select
+                    name="gender"
+                    value={formData.gender}
+                    onChange={handleChange}
+                    className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                  >
+                    <option value="male">Male</option>
+                    <option value="female">Female</option>
+                  </select>
+                </div>
               </div>
 
               <div>
@@ -393,7 +411,6 @@ export default function CreateUser() {
           </div>
         </div>
       </div>
-      <Footer />
-    </div>
+    </AdminLayout>
   );
 }

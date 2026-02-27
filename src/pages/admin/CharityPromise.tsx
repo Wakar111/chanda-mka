@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { supabase } from '../../supabaseClient';
-import Navbar from '../../components/Navbar';
-import Footer from '../../components/Footer';
+import AdminLayout from '../../components/AdminLayout';
 
 interface User {
   id: string;
@@ -13,6 +13,8 @@ interface User {
   phone: string;
   musi: boolean;
   profession: string;
+  role: string;
+  gender: string;
 }
 
 interface ChandaType {
@@ -46,6 +48,10 @@ const formatCurrency = (amount: number): string => {
 
 const getTotalPaid = (promise: Promise): number => {
   return promise.payments?.reduce((sum, p) => sum + p.amount, 0) || 0;
+};
+
+const roundToNearestInteger = (value: number): number => {
+  return Math.round(value);
 };
 
 const getRemainingAmount = (promise: Promise): number => {
@@ -89,6 +95,7 @@ interface IncomeBudgetForm {
 }
 
 export default function CharityPromise() {
+  const [searchParams] = useSearchParams();
   const [searchJamaatID, setSearchJamaatID] = useState('');
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [status, setStatus] = useState<StatusMessage>(null);
@@ -99,6 +106,8 @@ export default function CharityPromise() {
   const [availableYears, setAvailableYears] = useState<number[]>([]);
   const [editingPromiseId, setEditingPromiseId] = useState<string | null>(null);
   const [editAmount, setEditAmount] = useState<string>('');
+  const [editingDatePromiseId, setEditingDatePromiseId] = useState<string | null>(null);
+  const [editDate, setEditDate] = useState<string>('');
   const [savingPayment, setSavingPayment] = useState<string | null>(null);
   const [showNewPromiseModal, setShowNewPromiseModal] = useState(false);
   const [newPromiseForm, setNewPromiseForm] = useState<NewPromiseForm>({
@@ -153,11 +162,11 @@ export default function CharityPromise() {
     }
 
     try {
-      // Fetch all users with role 'user' and filter client-side since jamaatID is int8
+      // Fetch all users (both 'user' and 'admin' roles) and filter client-side since jamaatID is int8
       const { data, error } = await supabase
         .from('users')
-        .select('id, jamaatID, name, surname, email, jamaat, phone, profession, musi')
-        .eq('role', 'user');
+        .select('id, jamaatID, name, surname, email, jamaat, phone, profession, musi, role, gender')
+        .in('role', ['user', 'admin']);
 
       if (error) throw error;
 
@@ -174,6 +183,18 @@ export default function CharityPromise() {
       setShowDropdown(false);
     }
   };
+
+  // Check for jamaatID in URL params on mount
+  useEffect(() => {
+    const jamaatIDFromURL = searchParams.get('jamaatID');
+    if (jamaatIDFromURL) {
+      setSearchJamaatID(jamaatIDFromURL);
+      // Trigger search after setting the jamaatID
+      setTimeout(() => {
+        searchUserByJamaatID(jamaatIDFromURL);
+      }, 100);
+    }
+  }, [searchParams]);
 
   // Handle input change with debouncing
   useEffect(() => {
@@ -208,6 +229,44 @@ export default function CharityPromise() {
     }
   };
 
+  const searchUserByJamaatID = async (jamaatID: string) => {
+    if (!jamaatID.trim()) {
+      setStatus({ type: 'error', message: 'Bitte geben Sie eine Jamaat ID ein' });
+      return;
+    }
+
+    setLoading(true);
+    setStatus(null);
+    setShowDropdown(false);
+
+    try {
+      const { data, error } = await supabase
+        .from('users')
+        .select('id, jamaatID, name, surname, email, jamaat, phone, profession, musi, role, gender')
+        .in('role', ['user', 'admin'])
+        .eq('jamaatID', jamaatID)
+        .limit(1);
+
+      if (error) throw error;
+
+      if (!data || data.length === 0) {
+        setStatus({ type: 'error', message: 'Kein Benutzer mit dieser Jamaat ID gefunden' });
+        setSelectedUser(null);
+        setUserPromises([]);
+        return;
+      }
+
+      const user = data[0];
+      setSelectedUser(user);
+      await fetchUserPromises(user.id);
+    } catch (error: any) {
+      console.error('Error searching user:', error);
+      setStatus({ type: 'error', message: 'Fehler beim Suchen des Benutzers' });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const searchUser = async () => {
     if (!searchJamaatID.trim()) {
       setStatus({ type: 'error', message: 'Bitte geben Sie eine Jamaat ID ein' });
@@ -223,8 +282,8 @@ export default function CharityPromise() {
     try {
       const { data, error } = await supabase
         .from('users')
-        .select('id, jamaatID, name, surname, email, jamaat, phone, profession, musi')
-        .eq('role', 'user')
+        .select('id, jamaatID, name, surname, email, jamaat, phone, profession, musi, role, gender')
+        .in('role', ['user', 'admin'])
         .eq('jamaatID', searchJamaatID)
         .limit(1);
 
@@ -258,6 +317,86 @@ export default function CharityPromise() {
   const cancelEditPayment = () => {
     setEditingPromiseId(null);
     setEditAmount('');
+  };
+
+  const startEditDate = (promiseId: string) => {
+    setEditingDatePromiseId(promiseId);
+    const p = userPromises.find((x) => x.id === promiseId);
+    if (p?.lastPaymentDate) {
+      // Convert to YYYY-MM-DD format for date input
+      const date = new Date(p.lastPaymentDate);
+      const formattedDate = date.toISOString().split('T')[0];
+      setEditDate(formattedDate);
+    } else {
+      setEditDate('');
+    }
+  };
+
+  const cancelEditDate = () => {
+    setEditingDatePromiseId(null);
+    setEditDate('');
+  };
+
+  const savePaymentDate = async (promiseId: string) => {
+    if (!editDate) {
+      setStatus({ type: 'error', message: 'Bitte ein gültiges Datum eingeben' });
+      return;
+    }
+
+    try {
+      setSavingPayment(promiseId);
+      setStatus(null);
+
+      const p = userPromises.find((x) => x.id === promiseId);
+      if (!p || !p.payments || p.payments.length === 0) {
+        setStatus({ type: 'error', message: 'Keine Zahlung vorhanden' });
+        return;
+      }
+
+      // Find the most recent payment and update its date
+      const sortedPayments = p.payments
+        .slice()
+        .sort((a, b) => new Date(b.payment_date).getTime() - new Date(a.payment_date).getTime());
+      const latestPayment = sortedPayments[0];
+
+      const { error } = await supabase
+        .from('payments')
+        .update({ payment_date: new Date(editDate).toISOString() })
+        .eq('id', latestPayment.id);
+
+      if (error) throw error;
+
+      // Refresh payments for this promise
+      const payments = await fetchPayments(promiseId);
+      setUserPromises((prev) =>
+        prev.map((promise) =>
+          promise.id === promiseId
+            ? {
+                ...promise,
+                payments,
+                lastPaymentDate:
+                  payments.length > 0
+                    ? payments
+                        .slice()
+                        .sort(
+                          (a, b) =>
+                            new Date(b.payment_date).getTime() -
+                            new Date(a.payment_date).getTime()
+                        )[0].payment_date
+                    : undefined,
+              }
+            : promise
+        )
+      );
+
+      setStatus({ type: 'success', message: 'Zahlungsdatum gespeichert' });
+      cancelEditDate();
+    } catch (error) {
+      console.error('Error saving payment date:', error);
+      setStatus({ type: 'error', message: 'Fehler beim Speichern des Zahlungsdatums' });
+    } finally {
+      setSavingPayment(null);
+    }
   };
 
   const savePayment = async (promiseId: string) => {
@@ -696,9 +835,8 @@ export default function CharityPromise() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-100">
-      <Navbar />
-      <div className="flex-grow p-8">
+    <AdminLayout>
+      <div className="p-8">
         <div className="max-w-6xl mx-auto">
           <div className="bg-white rounded-lg shadow-md p-6">
             <h1 className="text-2xl font-bold text-gray-800 mb-6">
@@ -804,6 +942,14 @@ export default function CharityPromise() {
                       <p className="text-sm text-gray-500">Musi</p>
                       <p className="font-medium">{selectedUser.musi ? 'Ja' : 'Nein'}</p>
                     </div>
+                    <div>
+                      <p className="text-sm text-gray-500">Rolle</p>
+                      <p className="font-medium">{selectedUser.role}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">Gender</p>
+                      <p className="font-medium">{selectedUser.gender}</p>
+                    </div>
                   </div>
                 </div>
 
@@ -900,7 +1046,7 @@ export default function CharityPromise() {
                                   {promise.chanda_types.name}
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                  {promise.promise} €
+                                  {roundToNearestInteger(promise.promise)} €
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                   {promise.spende_ends 
@@ -957,9 +1103,53 @@ export default function CharityPromise() {
                                   )}
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                  {promise.lastPaymentDate 
-                                    ? new Date(promise.lastPaymentDate).toLocaleDateString('de-DE')
-                                    : '-'}
+                                  {editingDatePromiseId === promise.id ? (
+                                    <div className="flex items-center gap-2">
+                                      <input
+                                        type="date"
+                                        value={editDate}
+                                        onChange={(e) => setEditDate(e.target.value)}
+                                        className="border border-gray-300 rounded px-2 py-1 text-sm w-36"
+                                      />
+                                      <button
+                                        type="button"
+                                        onClick={() => savePaymentDate(promise.id)}
+                                        disabled={savingPayment === promise.id}
+                                        className="px-2 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700 disabled:opacity-50"
+                                      >
+                                        {savingPayment === promise.id ? '...' : 'OK'}
+                                      </button>
+                                      <button
+                                        type="button"
+                                        onClick={cancelEditDate}
+                                        className="px-2 py-1 bg-gray-300 text-gray-700 rounded text-xs hover:bg-gray-400"
+                                      >
+                                        Abbrechen
+                                      </button>
+                                    </div>
+                                  ) : (
+                                    <div className="flex items-center gap-2">
+                                      <span>
+                                        {promise.lastPaymentDate 
+                                          ? new Date(promise.lastPaymentDate).toLocaleDateString('de-DE')
+                                          : '-'}
+                                      </span>
+                                      {promise.lastPaymentDate && (
+                                        <button
+                                          type="button"
+                                          onClick={() => startEditDate(promise.id)}
+                                          className="p-1 rounded hover:bg-gray-100"
+                                          title="Datum bearbeiten"
+                                        >
+                                          {/* Pencil icon */}
+                                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 text-gray-600">
+                                            <path d="M21.731 2.269a2.625 2.625 0 0 0-3.714 0l-1.157 1.157 3.714 3.714 1.157-1.157a2.625 2.625 0 0 0 0-3.714Z" />
+                                            <path d="M19.513 8.199 15.8 4.486 4.772 15.514a5.25 5.25 0 0 0-1.32 2.214l-.8 2.401a.75.75 0 0 0 .948.948l2.401-.8a5.25 5.25 0 0 0 2.214-1.32L19.513 8.2Z" />
+                                          </svg>
+                                        </button>
+                                      )}
+                                    </div>
+                                  )}
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm">
                                   <div className="flex items-center justify-between">
@@ -1003,7 +1193,6 @@ export default function CharityPromise() {
           </div>
         </div>
       </div>
-      <Footer />
 
       {/* New Promise Modal */}
       {showNewPromiseModal && (
@@ -1290,6 +1479,6 @@ export default function CharityPromise() {
           </div>
         </div>
       )}
-    </div>
+    </AdminLayout>
   );
 }
