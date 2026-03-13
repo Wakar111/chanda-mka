@@ -55,7 +55,6 @@ export default function CreateUser() {
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
         setSavedAdminSession(session);
-        console.log('Admin session saved on mount:', session.user.id);
       }
     };
     saveAdminSession();
@@ -110,8 +109,6 @@ export default function CreateUser() {
         return;
       }
 
-      console.log('Using saved admin session:', savedAdminSession.user.id);
-      
       // Check if jamaatID already exists BEFORE creating auth user
       const { data: existingJamaatID, error: jamaatCheckError } = await supabase
         .from('users')
@@ -153,8 +150,6 @@ export default function CreateUser() {
         return;
       }
 
-      console.log('Jamaat ID and email are unique, proceeding with user creation');
-      
       // Generate a random password
       const generatedPassword = generatePassword(12);
       
@@ -177,11 +172,8 @@ export default function CreateUser() {
         throw new Error('Failed to create user');
       }
 
-      console.log('New user created:', authData.user.id);
-
       // CRITICAL: Restore admin session BEFORE inserting into users table
       // signUp() switched us to the new user's session, but we need admin privileges to INSERT
-      console.log('Restoring admin session before INSERT...');
       await supabase.auth.signOut();
       
       const { error: restoreError } = await supabase.auth.setSession({
@@ -193,8 +185,6 @@ export default function CreateUser() {
         console.error('Error restoring admin session:', restoreError);
         throw new Error('Failed to restore admin session');
       }
-
-      console.log('Admin session restored, proceeding with INSERT');
 
       // Create user profile
       // Convert phone string to number for int8 database field
@@ -236,9 +226,6 @@ export default function CreateUser() {
         console.error('Error sending password reset email:', resetError);
         // Don't fail the whole operation if email fails
       }
-
-      // Admin session is already restored (done before INSERT)
-      console.log('User creation complete, admin session maintained');
 
       setStatus({ 
         type: 'success', 

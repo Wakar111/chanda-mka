@@ -17,7 +17,6 @@ export default function Login() {
         try {
             // Convert jamaatID to integer for database comparison
             const jamaatIDNumber = parseInt(jamaatID, 10);
-            console.log("Trying to login with jamaatID:", jamaatIDNumber);
             
             if (isNaN(jamaatIDNumber)) {
                 setError("Bitte geben Sie eine gültige Jamaat ID ein.")
@@ -31,24 +30,17 @@ export default function Login() {
                 .eq("jamaatID", jamaatIDNumber)
                 .maybeSingle()
 
-            console.log("User data:", userData);
-            console.log("User error:", userError);
-
             if (userError || !userData) {
                 setError("Jamaat ID nicht gefunden. Bitte überprüfen Sie Ihre Eingabe.")
                 console.error("Failed to find user:", userError);
                 return
             }
 
-            console.log("Found user, attempting login with email:", userData.email);
-
             // Sign in with the email and password
             const { error: authError } = await supabase.auth.signInWithPassword({
                 email: userData.email,
                 password,
             })
-
-            console.log("Auth error:", authError);
 
             if (authError) {
                 setError("Falsches Passwort. Bitte versuchen Sie es erneut.")
@@ -142,7 +134,10 @@ export default function Login() {
         </div>
         {/* small text with admin account in the center */}
         <p className="text-sm text-gray-600 mt-2 text-center">
-          Hinweis: Melden Sie sich mit Ihrer Jamaat ID und Ihrem Passwort an
+          Admin Account: 123 / admin123
+        </p>
+        <p className="text-sm text-gray-600 mt-2 text-center">
+          User Account: 12007 / test1234
         </p>
       </div>
     </div>

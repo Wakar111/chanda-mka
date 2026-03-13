@@ -105,11 +105,6 @@ export default function Home() {
         console.log('No session found');
         return;
       }
-
-      console.log('Fetching promises for user:', session.user.id);
-      
-      // Fetch promises with chanda types
-      console.log('Fetching promises for year:', selectedYear);
       
       const { data: promiseData, error: promiseError } = await supabase
         .from('promises')
@@ -120,8 +115,6 @@ export default function Home() {
         .eq('user_id', session.user.id)
         .eq('year', selectedYear);
       
-      console.log('Raw promise data:', promiseData);
-
       if (promiseError) {
         console.error('Promise fetch error:', promiseError);
         throw promiseError;
@@ -133,7 +126,6 @@ export default function Home() {
       }
 
       // Fetch payments for each promise
-      console.log('Fetching payments for promises...');
       const promisesWithPayments = await Promise.all(
         promiseData.map(async (promise) => {
           const { data: payments, error: paymentsError } = await supabase
@@ -147,7 +139,6 @@ export default function Home() {
             throw paymentsError;
           }
 
-          console.log(`Payments for promise ${promise.id}:`, payments);
           return {
             ...promise,
             payments: payments || []
@@ -155,7 +146,6 @@ export default function Home() {
         })
       );
 
-      console.log('Promises with payments:', promisesWithPayments);
       setPromises(promisesWithPayments);
     } catch (error) {
       console.error('Error fetching chanda data:', error);

@@ -18,11 +18,6 @@ export default function ResetPassword() {
     const type = hashParams.get('type');
     const accessToken = hashParams.get('access_token');
     
-    console.log('Reset password page loaded');
-    console.log('Type:', type);
-    console.log('Access token present:', !!accessToken);
-    console.log('Full hash:', window.location.hash);
-    
     if (!type || type !== 'recovery') {
       setStatus({ type: 'error', message: 'Ungültiger oder abgelaufener Link. Bitte fordern Sie einen neuen Link an.' });
     } else if (!accessToken) {
