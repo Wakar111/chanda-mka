@@ -174,20 +174,20 @@ export default function AdminDashboard() {
       <div className="flex-grow p-8">
         <div className="max-w-7xl mx-auto">
           {/* Welcome Header */}
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-800">Admin Dashboard</h1>
+          <div className="p-4 md:p-8">
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-800 mb-6 md:mb-8">Dashboard</h1>
             <p className="text-gray-600 mt-2">Willkommen zurück, {adminName || 'Admin User'}!</p>
             <p className="text-sm text-gray-500">Hier ist eine Übersicht über Ihre Plattform</p>
           </div>
 
           {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-6 md:mb-8">
             {/* Admin Count Card */}
-            <div className="bg-white rounded-lg shadow-md p-6">
+            <div className="bg-white rounded-lg shadow-md p-4 md:p-6">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-500 mb-1">Admin Anzahl</p>
-                  <p className="text-3xl font-bold text-gray-800">{stats.adminCount}</p>
+                  <p className="text-2xl md:text-3xl font-bold text-gray-800">{stats.adminCount}</p>
                 </div>
                 <div className="bg-red-100 rounded-full p-3">
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -198,11 +198,11 @@ export default function AdminDashboard() {
             </div>
 
             {/* Regular Users Card */}
-            <div className="bg-white rounded-lg shadow-md p-6">
+            <div className="bg-white rounded-lg shadow-md p-4 md:p-6">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-500 mb-1">Normale Mitglieder</p>
-                  <p className="text-3xl font-bold text-gray-800">{stats.regularUserCount}</p>
+                  <p className="text-2xl md:text-3xl font-bold text-gray-800">{stats.regularUserCount}</p>
                 </div>
                 <div className="bg-blue-100 rounded-full p-3">
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -213,11 +213,11 @@ export default function AdminDashboard() {
             </div>
 
             {/* Musi Count Card */}
-            <div className="bg-white rounded-lg shadow-md p-6">
+            <div className="bg-white rounded-lg shadow-md p-4 md:p-6">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-500 mb-1">Musi Mitglieder</p>
-                  <p className="text-3xl font-bold text-gray-800">
+                  <p className="text-2xl md:text-3xl font-bold text-gray-800">
                     {stats.musiCount}/{stats.regularUserCount}
                   </p>
                 </div>
@@ -230,11 +230,11 @@ export default function AdminDashboard() {
             </div>
 
             {/* Male Count Card */}
-            <div className="bg-white rounded-lg shadow-md p-6">
+            <div className="bg-white rounded-lg shadow-md p-4 md:p-6">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-500 mb-1">Männliche Mitglieder</p>
-                  <p className="text-3xl font-bold text-gray-800">{stats.maleCount}</p>
+                  <p className="text-2xl md:text-3xl font-bold text-gray-800">{stats.maleCount}</p>
                 </div>
                 <div className="bg-blue-100 rounded-full p-3">
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -245,11 +245,11 @@ export default function AdminDashboard() {
             </div>
 
             {/* Female Count Card */}
-            <div className="bg-white rounded-lg shadow-md p-6">
+            <div className="bg-white rounded-lg shadow-md p-4 md:p-6">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-500 mb-1">Weibliche Mitglieder</p>
-                  <p className="text-3xl font-bold text-gray-800">{stats.femaleCount}</p>
+                  <p className="text-2xl md:text-3xl font-bold text-gray-800">{stats.femaleCount}</p>
                 </div>
                 <div className="bg-pink-100 rounded-full p-3">
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-pink-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -260,11 +260,11 @@ export default function AdminDashboard() {
             </div>
 
             {/* Total Promise Amount Card */}
-            <div className="bg-white rounded-lg shadow-md p-6">
+            <div className="bg-white rounded-lg shadow-md p-4 md:p-6">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-500 mb-1">Gesamtes Versprechen</p>
-                  <p className="text-3xl font-bold text-gray-800">{formatCurrency(stats.totalPromiseAmount)}</p>
+                  <p className="text-2xl md:text-3xl font-bold text-gray-800">{formatCurrency(stats.totalPromiseAmount)}</p>
                 </div>
                 <div className="bg-green-100 rounded-full p-3">
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -277,10 +277,10 @@ export default function AdminDashboard() {
           </div>
 
           {/* Member Statistics */}
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-bold text-gray-800">Mitglieder Statistik</h2>
-              <p className="text-sm text-gray-500">Sortiert nach Versprechen (höchste bis niedrigste)</p>
+          <div className="bg-white rounded-lg shadow-md p-4 md:p-6">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 mb-6">
+              <h3 className="text-sm md:text-base font-medium text-gray-800">Mitglieder Statistik</h3>
+              <p className="text-xs md:text-sm text-gray-500">Sortiert nach Versprechen (höchste bis niedrigste)</p>
             </div>
 
             <div className="space-y-4">
@@ -296,8 +296,8 @@ export default function AdminDashboard() {
                     
                     return (
                       <div key={member.userId} className="space-y-2">
-                        <div className="flex items-center justify-between text-sm">
-                          <div className="flex items-center gap-3">
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-xs md:text-sm">
+                          <div className="flex items-center gap-2 md:gap-3 flex-wrap">
                             <span className="font-bold text-gray-700 w-6">#{index + 1}</span>
                             <span className="font-medium text-gray-900">
                               {member.name} {member.surname}
@@ -309,8 +309,8 @@ export default function AdminDashboard() {
                               (ID: {member.jamaatID})
                             </Link>
                           </div>
-                          <div className="text-right">
-                            <div className="font-semibold text-green-600">
+                          <div className="text-left sm:text-right">
+                            <div className="font-semibold text-green-600 text-xs md:text-sm">
                               {formatCurrency(member.totalPaid)} / {formatCurrency(member.totalPromise)}
                             </div>
                             <div className="text-xs text-gray-500">

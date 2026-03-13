@@ -10,6 +10,7 @@ export default function Navbar() {
     const [userRole, setUserRole] = useState<string | null>(null)
     const [userName, setUserName] = useState<string>('')
     const [isDropdownOpen, setIsDropdownOpen] = useState(false)
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
     const dropdownRef = useRef<HTMLDivElement>(null)
 
     useEffect(() => {
@@ -172,14 +173,72 @@ export default function Navbar() {
     }
 
     return (
-        <nav className="bg-black text-white px-6 py-3 flex justify-between items-center shadow-md">
-            <div className="flex items-center space-x-4">
-                <img src={mkaLogo} alt="MKA Logo" className="h-10 w-auto" />
-                <h1 className="text-lg font-bold">Charity App</h1>
+        <nav className="bg-black text-white px-4 md:px-6 py-3 shadow-md">
+            <div className="flex justify-between items-center">
+                {/* Logo and Title */}
+                <div className="flex items-center space-x-2 md:space-x-4">
+                    <img src={mkaLogo} alt="MKA Logo" className="h-8 md:h-10 w-auto" />
+                    <h1 className="text-base md:text-lg font-bold">Charity App</h1>
+                </div>
+
+                {/* Desktop Navigation */}
+                <div className="hidden md:flex md:space-x-4">
+                    {renderNavLinks()}
+                </div>
+
+                {/* Mobile Menu Button */}
+                <button
+                    onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                    className="md:hidden p-2 rounded-md hover:bg-gray-800 focus:outline-none"
+                    aria-label="Toggle menu"
+                >
+                    <svg
+                        className="h-6 w-6"
+                        fill="none"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                    >
+                        {isMobileMenuOpen ? (
+                            <path d="M6 18L18 6M6 6l12 12" />
+                        ) : (
+                            <path d="M4 6h16M4 12h16M4 18h16" />
+                        )}
+                    </svg>
+                </button>
             </div>
-            <div className="space-x-4">
-                {renderNavLinks()}
-            </div>
+
+            {/* Mobile Navigation Menu */}
+            {isMobileMenuOpen && (
+                <div className="md:hidden mt-4 pb-4 space-y-2">
+                    {userRole === 'admin' ? (
+                        <>
+                            <Link to="/admin" className="block py-2 px-4 hover:bg-gray-800 rounded" onClick={() => setIsMobileMenuOpen(false)}>Dashboard</Link>
+                            <Link to="/admin/create-user" className="block py-2 px-4 hover:bg-gray-800 rounded" onClick={() => setIsMobileMenuOpen(false)}>Create User</Link>
+                            <Link to="/admin/charity-promise" className="block py-2 px-4 hover:bg-gray-800 rounded" onClick={() => setIsMobileMenuOpen(false)}>Set Charity Promise</Link>
+                            <Link to="/admin/set-chanda-type" className="block py-2 px-4 hover:bg-gray-800 rounded" onClick={() => setIsMobileMenuOpen(false)}>Set Chanda Type</Link>
+                            <div className="border-t border-gray-700 my-2"></div>
+                            <Link to="/profile" className="block py-2 px-4 hover:bg-gray-800 rounded" onClick={() => setIsMobileMenuOpen(false)}>Profile</Link>
+                            <Link to="/change-password" className="block py-2 px-4 hover:bg-gray-800 rounded" onClick={() => setIsMobileMenuOpen(false)}>Passwort ändern</Link>
+                            <button onClick={() => { setIsMobileMenuOpen(false); handleLogout(); }} className="block w-full text-left py-2 px-4 hover:bg-gray-800 rounded">Logout</button>
+                        </>
+                    ) : userRole ? (
+                        <>
+                            <Link to="/user" className="block py-2 px-4 hover:bg-gray-800 rounded" onClick={() => setIsMobileMenuOpen(false)}>Home</Link>
+                            <Link to="/user/info" className="block py-2 px-4 hover:bg-gray-800 rounded" onClick={() => setIsMobileMenuOpen(false)}>Info</Link>
+                            <Link to="/user/contact" className="block py-2 px-4 hover:bg-gray-800 rounded" onClick={() => setIsMobileMenuOpen(false)}>Contact</Link>
+                            <div className="border-t border-gray-700 my-2"></div>
+                            <Link to="/profile" className="block py-2 px-4 hover:bg-gray-800 rounded" onClick={() => setIsMobileMenuOpen(false)}>Profile</Link>
+                            <Link to="/change-password" className="block py-2 px-4 hover:bg-gray-800 rounded" onClick={() => setIsMobileMenuOpen(false)}>Passwort ändern</Link>
+                            <button onClick={() => { setIsMobileMenuOpen(false); handleLogout(); }} className="block w-full text-left py-2 px-4 hover:bg-gray-800 rounded">Logout</button>
+                        </>
+                    ) : (
+                        <Link to="/login" className="block py-2 px-4 hover:bg-gray-800 rounded" onClick={() => setIsMobileMenuOpen(false)}>Login</Link>
+                    )}
+                </div>
+            )}
         </nav>
       )
 }

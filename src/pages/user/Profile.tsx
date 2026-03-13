@@ -115,17 +115,17 @@ export default function Profile() {
   return (
     <div className="min-h-screen flex flex-col bg-gray-100">
       <Navbar />
-      <div className="flex-grow p-8">
+      <div className="flex-grow p-4 md:p-8">
         <div className="max-w-2xl mx-auto">
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <div className="flex justify-between items-center mb-6">
-              <h1 className="text-2xl font-bold text-gray-800">
+          <div className="bg-white rounded-lg shadow-md p-4 md:p-6">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-6">
+              <h1 className="text-lg md:text-2xl font-bold text-gray-800">
                 Profile Information von {profile?.name} {profile?.surname}
               </h1>
               {!isEditing && (
                 <button
                   onClick={() => setIsEditing(true)}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm md:text-base whitespace-nowrap"
                 >
                   Edit Profile
                 </button>
@@ -143,7 +143,7 @@ export default function Profile() {
             {isEditing ? (
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">
                     Jamaat ID
                   </label>
                   <input
@@ -151,13 +151,13 @@ export default function Profile() {
                     name="jamaatID"
                     value={formData.jamaatID || ''}
                     onChange={handleInputChange}
-                    className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                    className="w-full rounded-lg border border-gray-300 px-3 md:px-4 py-2 text-sm md:text-base focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                   />
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">
                       Name
                     </label>
                     <input
@@ -165,11 +165,11 @@ export default function Profile() {
                       name="name"
                       value={formData.name || ''}
                       onChange={handleInputChange}
-                      className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                      className="w-full rounded-lg border border-gray-300 px-3 md:px-4 py-2 text-sm md:text-base focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">
                       Surname
                     </label>
                     <input
@@ -177,13 +177,13 @@ export default function Profile() {
                       name="surname"
                       value={formData.surname || ''}
                       onChange={handleInputChange}
-                      className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                      className="w-full rounded-lg border border-gray-300 px-3 md:px-4 py-2 text-sm md:text-base focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">
                     Email
                   </label>
                   <input
@@ -191,12 +191,12 @@ export default function Profile() {
                     name="email"
                     value={formData.email || ''}
                     onChange={handleInputChange}
-                    className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                    className="w-full rounded-lg border border-gray-300 px-3 md:px-4 py-2 text-sm md:text-base focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">
                     Date of Birth
                   </label>
                   <input
@@ -204,13 +204,13 @@ export default function Profile() {
                     name="date_of_birth"
                     value={formData.date_of_birth || ''}
                     onChange={handleInputChange}
-                    className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                    className="w-full rounded-lg border border-gray-300 px-3 md:px-4 py-2 text-sm md:text-base focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                   />
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">
                       Phone
                     </label>
                     <input
@@ -218,18 +218,18 @@ export default function Profile() {
                       name="phone"
                       value={formData.phone || ''}
                       onChange={handleInputChange}
-                      className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                      className="w-full rounded-lg border border-gray-300 px-3 md:px-4 py-2 text-sm md:text-base focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">
                       Gender
                     </label>
                     <select
                       name="gender"
                       value={formData.gender || 'male'}
                       onChange={handleInputChange as any}
-                      className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                      className="w-full rounded-lg border border-gray-300 px-3 md:px-4 py-2 text-sm md:text-base focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                     >
                       <option value="male">Male</option>
                       <option value="female">Female</option>
@@ -238,7 +238,7 @@ export default function Profile() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">
                     Address
                   </label>
                   <input
@@ -246,11 +246,11 @@ export default function Profile() {
                     name="address"
                     value={formData.address || ''}
                     onChange={handleInputChange}
-                    className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                    className="w-full rounded-lg border border-gray-300 px-3 md:px-4 py-2 text-sm md:text-base focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">
                     Profession
                   </label>
                   <input
@@ -258,14 +258,14 @@ export default function Profile() {
                     name="profession"
                     value={formData.profession || ''}
                     onChange={handleInputChange}
-                    className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                    className="w-full rounded-lg border border-gray-300 px-3 md:px-4 py-2 text-sm md:text-base focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                   />
                 </div>
 
-                <div className="flex space-x-4">
+                <div className="flex flex-col sm:flex-row gap-3 sm:space-x-4">
                   <button
                     type="submit"
-                    className="flex-1 bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                    className="flex-1 bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm md:text-base"
                   >
                     Save Changes
                   </button>
@@ -275,7 +275,7 @@ export default function Profile() {
                       setIsEditing(false);
                       setFormData(profile || {});
                     }}
-                    className="flex-1 bg-gray-200 text-gray-800 py-2 rounded-lg hover:bg-gray-300 transition-colors"
+                    className="flex-1 bg-gray-200 text-gray-800 py-2 rounded-lg hover:bg-gray-300 transition-colors text-sm md:text-base"
                   >
                     Cancel
                   </button>
@@ -284,73 +284,73 @@ export default function Profile() {
             ) : (
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-600">
+                  <label className="block text-xs md:text-sm font-medium text-gray-600">
                     Jamaat ID
                   </label>
-                  <p className="text-gray-800">{profile?.jamaatID}</p>
+                  <p className="text-sm md:text-base text-gray-800">{profile?.jamaatID}</p>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-600">
+                  <label className="block text-xs md:text-sm font-medium text-gray-600">
                     Jamaat
                   </label>
-                  <p className="text-gray-800">{profile?.jamaat}</p>
+                  <p className="text-sm md:text-base text-gray-800">{profile?.jamaat}</p>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-600">
+                  <label className="block text-xs md:text-sm font-medium text-gray-600">
                     Full Name
                   </label>
-                  <p className="text-gray-800">{profile?.name + ' ' + profile?.surname}</p>
+                  <p className="text-sm md:text-base text-gray-800">{profile?.name + ' ' + profile?.surname}</p>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-600">
+                  <label className="block text-xs md:text-sm font-medium text-gray-600">
                     Email
                   </label>
-                  <p className="text-gray-800">{profile?.email}</p>
+                  <p className="text-sm md:text-base text-gray-800">{profile?.email}</p>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-600">
+                  <label className="block text-xs md:text-sm font-medium text-gray-600">
                     Age
                   </label>
-                  <p className="text-gray-800">{calculateAge(profile?.date_of_birth || '')}</p>
+                  <p className="text-sm md:text-base text-gray-800">{calculateAge(profile?.date_of_birth || '')}</p>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-600">
+                  <label className="block text-xs md:text-sm font-medium text-gray-600">
                     Date of Birth
                   </label>
-                  <p className="text-gray-800">{formatDate(profile?.date_of_birth || '')}</p>
+                  <p className="text-sm md:text-base text-gray-800">{formatDate(profile?.date_of_birth || '')}</p>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-600">
+                  <label className="block text-xs md:text-sm font-medium text-gray-600">
                     Phone
                   </label>
-                  <p className="text-gray-800">{profile?.phone}</p>
+                  <p className="text-sm md:text-base text-gray-800">{profile?.phone}</p>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-600">
+                  <label className="block text-xs md:text-sm font-medium text-gray-600">
                     Address
                   </label>
-                  <p className="text-gray-800">{profile?.address}</p>
+                  <p className="text-sm md:text-base text-gray-800">{profile?.address}</p>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-600">
+                  <label className="block text-xs md:text-sm font-medium text-gray-600">
                     Profession
                   </label>
-                  <p className="text-gray-800">{profile?.profession}</p>
+                  <p className="text-sm md:text-base text-gray-800">{profile?.profession}</p>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-600">
+                  <label className="block text-xs md:text-sm font-medium text-gray-600">
                     Gender
                   </label>
-                  <p className="text-gray-800">{profile?.gender === 'male' ? 'Male' : profile?.gender === 'female' ? 'Female' : 'Not specified'}</p>
+                  <p className="text-sm md:text-base text-gray-800">{profile?.gender === 'male' ? 'Male' : profile?.gender === 'female' ? 'Female' : 'Not specified'}</p>
                 </div>
 
               </div>

@@ -5,7 +5,7 @@ import mkaLogo from "/mka-logo.png"
 
 
 export default function Login() {
-    const [email, setEmail] = useState("")
+    const [jamaatID, setJamaatID] = useState("")
     const [password, setPassword] = useState("")
     const [error, setError] = useState("")
     const navigate = useNavigate()
@@ -14,39 +14,55 @@ export default function Login() {
         e.preventDefault()
         setError("")
 
-        // sign in with supabase
-        const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
-            email,
-            password,
-        })
+        try {
+            // Convert jamaatID to integer for database comparison
+            const jamaatIDNumber = parseInt(jamaatID, 10);
+            console.log("Trying to login with jamaatID:", jamaatIDNumber);
+            
+            if (isNaN(jamaatIDNumber)) {
+                setError("Bitte geben Sie eine gültige Jamaat ID ein.")
+                return
+            }
 
-        if (authError) {
-            setError(authError.message)
-            return
-        }
+            // First, fetch the email associated with the jamaatID
+            const { data: userData, error: userError } = await supabase
+                .from("users")
+                .select("email, role")
+                .eq("jamaatID", jamaatIDNumber)
+                .maybeSingle()
 
-        // Fetch user profile to check role
-        const { data: profileData, error: profileError } = await supabase
-            .from("users")
-            .select("role")
-            .eq("id", authData.user?.id)
-            .maybeSingle()
+            console.log("User data:", userData);
+            console.log("User error:", userError);
 
-        if (profileError) {
-            setError(profileError.message)
-            return
-        }
+            if (userError || !userData) {
+                setError("Jamaat ID nicht gefunden. Bitte überprüfen Sie Ihre Eingabe.")
+                console.error("Failed to find user:", userError);
+                return
+            }
 
-        if (!profileData) {
-            setError("Benutzerprofil nicht gefunden. Bitte kontaktieren Sie den Administrator.")
-            return
-        }
+            console.log("Found user, attempting login with email:", userData.email);
 
-        // Redirect to user or admin dashboard based on role
-        if (profileData.role === "admin") {
-            navigate("/admin")
-        } else {
-            navigate("/user")
+            // Sign in with the email and password
+            const { error: authError } = await supabase.auth.signInWithPassword({
+                email: userData.email,
+                password,
+            })
+
+            console.log("Auth error:", authError);
+
+            if (authError) {
+                setError("Falsches Passwort. Bitte versuchen Sie es erneut.")
+                return
+            }
+
+            // Redirect to user or admin dashboard based on role
+            if (userData.role === "admin") {
+                navigate("/admin")
+            } else {
+                navigate("/user")
+            }
+        } catch (error) {
+            setError("Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut.")
         }
     }
 
@@ -64,22 +80,22 @@ export default function Login() {
           </p>
         </div>
         <form className="space-y-5" onSubmit={handleLogin}>
-          {/* Email */}
+          {/* Jamaat ID */}
           <div>
             <label
-              htmlFor="email"
+              htmlFor="jamaatID"
               className="mb-1 block text-sm font-medium text-gray-700"
             >
-              Email
+              Jamaat ID
             </label>
             <input
-              id="email"
-              type="email"
-              placeholder="you@example.com"
+              id="jamaatID"
+              type="text"
+              placeholder="Ihre Jamaat ID"
               className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
               required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              value={jamaatID}
+              onChange={(e) => setJamaatID(e.target.value)}
             />
           </div>
 
@@ -126,7 +142,7 @@ export default function Login() {
         </div>
         {/* small text with admin account in the center */}
         <p className="text-sm text-gray-600 mt-2 text-center">
-          Admin Account: admin@example.com / admin123
+          Hinweis: Melden Sie sich mit Ihrer Jamaat ID und Ihrem Passwort an
         </p>
       </div>
     </div>

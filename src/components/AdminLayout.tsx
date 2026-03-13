@@ -12,6 +12,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   const location = useLocation()
   const [userName, setUserName] = useState<string>('')
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -89,30 +90,52 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
 
   return (
     <div className="flex h-screen bg-gray-100">
+      {/* Mobile Overlay */}
+      {isSidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
+
       {/* Left Sidebar */}
-      <div className="w-64 bg-black text-white flex flex-col">
+      <div className={`fixed lg:static inset-y-0 left-0 z-50 w-64 bg-black text-white flex flex-col transform transition-transform duration-300 ease-in-out ${
+        isSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+      }`}>
         {/* Logo */}
-        <div className="p-6 flex items-center space-x-3 border-b border-gray-800">
-          <img src={mkaLogo} alt="MKA Logo" className="h-10 w-auto" />
-          <h1 className="text-lg font-bold">Charity App</h1>
+        <div className="p-4 md:p-6 flex items-center justify-between border-b border-gray-800">
+          <div className="flex items-center space-x-3">
+            <img src={mkaLogo} alt="MKA Logo" className="h-8 md:h-10 w-auto" />
+            <h1 className="text-base md:text-lg font-bold">Charity App</h1>
+          </div>
+          {/* Close button for mobile */}
+          <button
+            onClick={() => setIsSidebarOpen(false)}
+            className="lg:hidden p-2 rounded-md hover:bg-gray-800"
+          >
+            <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
         </div>
 
         {/* Navigation Links */}
-        <nav className="flex-1 px-4 py-6 space-y-2">
+        <nav className="flex-1 px-3 md:px-4 py-4 md:py-6 space-y-1 md:space-y-2 overflow-y-auto">
           {navLinks.map((link) => {
             const isActive = location.pathname === link.to
             return (
               <Link
                 key={link.to}
                 to={link.to}
-                className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
+                onClick={() => setIsSidebarOpen(false)}
+                className={`flex items-center space-x-3 px-3 md:px-4 py-2 md:py-3 rounded-lg transition-colors ${
                   isActive
                     ? 'bg-gray-800 text-white'
                     : 'text-gray-300 hover:bg-gray-800 hover:text-white'
                 }`}
               >
                 {link.icon}
-                <span className="text-sm font-medium">{link.label}</span>
+                <span className="text-xs md:text-sm font-medium">{link.label}</span>
               </Link>
             )
           })}
@@ -122,22 +145,31 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Top Header */}
-        <header className="bg-black shadow-sm px-6 py-4 flex justify-between items-center">
-          <div className="flex-1"></div>
+        <header className="bg-black shadow-sm px-4 md:px-6 py-3 md:py-4 flex justify-between items-center">
+          {/* Mobile Menu Button */}
+          <button
+            onClick={() => setIsSidebarOpen(true)}
+            className="lg:hidden p-2 rounded-md hover:bg-gray-800 text-white"
+          >
+            <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
+          <div className="flex-1 lg:flex-none"></div>
           
           {/* User Profile Dropdown */}
           <div className="relative" ref={dropdownRef}>
             <button
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-              className="flex items-center space-x-3 hover:bg-gray-800 px-3 py-2 rounded-lg transition-colors"
+              className="flex items-center space-x-2 md:space-x-3 hover:bg-gray-800 px-2 md:px-3 py-2 rounded-lg transition-colors"
             >
-              <div className="bg-gray-700 rounded-full p-2">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <div className="bg-gray-700 rounded-full p-1.5 md:p-2">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 md:h-5 w-4 md:w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                 </svg>
               </div>
-              {userName && <span className="text-sm font-medium text-white">{userName}</span>}
-              <svg xmlns="http://www.w3.org/2000/svg" className={`h-4 w-4 text-gray-300 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              {userName && <span className="hidden sm:inline text-xs md:text-sm font-medium text-white">{userName}</span>}
+              <svg xmlns="http://www.w3.org/2000/svg" className={`h-3 md:h-4 w-3 md:w-4 text-gray-300 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
               </svg>
             </button>

@@ -470,29 +470,29 @@ export default function Settings() {
         </div>
       )}
 
-      <div className="flex-grow p-8">
+      <div className="flex-grow p-4 md:p-8">
         <div className="max-w-6xl mx-auto">
           {/* Header */}
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-800">Einstellungen</h1>
-            <p className="text-gray-600 mt-2">Jamaat-Konfiguration verwalten</p>
+          <div className="mb-6 md:mb-8">
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-800">Einstellungen</h1>
+            <p className="text-sm md:text-base text-gray-600 mt-2">Jamaat-Konfiguration verwalten</p>
           </div>
 
           {/* Chanda Collectors Section */}
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <h2 className="text-xl font-bold text-gray-800 mb-6">Chanda Einkassierer verwalten</h2>
+          <div className="bg-white rounded-lg shadow-md p-4 md:p-6">
+            <h2 className="text-lg md:text-xl font-bold text-gray-800 mb-4 md:mb-6">Chanda Einkassierer verwalten</h2>
             <p className="text-sm text-gray-600 mb-6">
               Hier können Sie Mitglieder hinzufügen, die berechtigt sind, Chanda-Spenden einzukassieren.
             </p>
 
             {/* Add New Collector Form */}
             <div className="border-t pt-6">
-              <h3 className="text-lg font-semibold text-gray-800 mb-4">Neuen Einkassierer hinzufügen</h3>
+              <h3 className="text-base md:text-lg font-semibold text-gray-800 mb-4">Neuen Einkassierer hinzufügen</h3>
               
               <div className="space-y-4">
                 {/* Shoba Name */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-xs md:text-sm font-medium text-gray-700 mb-2">
                     Shoba Name <span className="text-red-500">*</span>
                   </label>
                   <input
@@ -500,7 +500,7 @@ export default function Settings() {
                     value={newCollector.shoba_name}
                     onChange={(e) => setNewCollector({ ...newCollector, shoba_name: e.target.value })}
                     placeholder="z.B. Nazim Maal"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                    className="w-full px-3 md:px-4 py-2 text-sm md:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
                   />
                   <p className="mt-1 text-sm text-gray-500">
                     Position/Verantwortung des Mitglieds
@@ -510,7 +510,7 @@ export default function Settings() {
                 {/* First Name and Last Name */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-xs md:text-sm font-medium text-gray-700 mb-2">
                       Vorname <span className="text-red-500">*</span>
                     </label>
                     <input
@@ -518,11 +518,11 @@ export default function Settings() {
                       value={newCollector.first_name}
                       onChange={(e) => setNewCollector({ ...newCollector, first_name: e.target.value })}
                       placeholder="Vorname"
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                      className="w-full px-3 md:px-4 py-2 text-sm md:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-xs md:text-sm font-medium text-gray-700 mb-2">
                       Nachname <span className="text-red-500">*</span>
                     </label>
                     <input
@@ -530,7 +530,7 @@ export default function Settings() {
                       value={newCollector.last_name}
                       onChange={(e) => setNewCollector({ ...newCollector, last_name: e.target.value })}
                       placeholder="Nachname"
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                      className="w-full px-3 md:px-4 py-2 text-sm md:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
                     />
                   </div>
                 </div>
@@ -539,7 +539,7 @@ export default function Settings() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-xs md:text-sm font-medium text-gray-700 mb-2">
                       Telefonnummer <span className="text-red-500">*</span>
                     </label>
                     <input
@@ -547,12 +547,12 @@ export default function Settings() {
                       value={newCollector.phone}
                       onChange={(e) => setNewCollector({ ...newCollector, phone: e.target.value })}
                       placeholder="z.B. +49 123 456789"
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                      className="w-full px-3 md:px-4 py-2 text-sm md:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-xs md:text-sm font-medium text-gray-700 mb-2">
                       Nizam <span className="text-red-500">*</span>
                     </label>
                     <input
@@ -560,7 +560,7 @@ export default function Settings() {
                       value={newCollector.nizam}
                       onChange={(e) => setNewCollector({ ...newCollector, nizam: e.target.value })}
                       placeholder="Nizam"
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                      className="w-full px-3 md:px-4 py-2 text-sm md:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
                     />
                   </div>
                 </div>
@@ -568,25 +568,25 @@ export default function Settings() {
                 {/* Period Start and End */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-xs md:text-sm font-medium text-gray-700 mb-2">
                       Zeitraum von <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="date"
                       value={newCollector.period_start}
                       onChange={(e) => setNewCollector({ ...newCollector, period_start: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                      className="w-full px-3 md:px-4 py-2 text-sm md:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-xs md:text-sm font-medium text-gray-700 mb-2">
                       Zeitraum bis <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="date"
                       value={newCollector.period_end}
                       onChange={(e) => setNewCollector({ ...newCollector, period_end: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                      className="w-full px-3 md:px-4 py-2 text-sm md:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
                     />
                   </div>
                 </div>
@@ -595,7 +595,7 @@ export default function Settings() {
                 <div className="flex justify-end pt-2">
                   <button
                     onClick={handleAddCollector}
-                    className="px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors"
+                    className="w-full sm:w-auto px-4 md:px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm md:text-base font-medium transition-colors"
                   >
                     Einkassierer hinzufügen
                   </button>
@@ -605,7 +605,7 @@ export default function Settings() {
 
             {/* List of Collectors */}
             <div className="border-t mt-6 pt-6">
-              <h3 className="text-lg font-semibold text-gray-800 mb-4">Aktive Einkassierer</h3>
+              <h3 className="text-base md:text-lg font-semibold text-gray-800 mb-4">Aktive Einkassierer</h3>
               
               {settings.collectors.length === 0 ? (
                 <p className="text-gray-500 text-center py-8">
@@ -616,14 +616,14 @@ export default function Settings() {
 {settings.collectors.map((collector) => (
                     <div
                       key={collector.id}
-                      className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
+                      className="border border-gray-200 rounded-lg p-3 md:p-4 hover:shadow-md transition-shadow"
                     >
                       {editingCollectorId === collector.id ? (
                         /* Edit Mode */
                         <div className="space-y-4">
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-2">Shoba Name</label>
+                              <label className="block text-xs md:text-sm font-medium text-gray-700 mb-2">Shoba Name</label>
                               <input
                                 type="text"
                                 value={editCollector.shoba_name}
@@ -632,7 +632,7 @@ export default function Settings() {
                               />
                             </div>
                             <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-2">Nizam</label>
+                              <label className="block text-xs md:text-sm font-medium text-gray-700 mb-2">Nizam</label>
                               <input
                                 type="text"
                                 value={editCollector.nizam}
@@ -643,7 +643,7 @@ export default function Settings() {
                           </div>
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-2">Vorname</label>
+                              <label className="block text-xs md:text-sm font-medium text-gray-700 mb-2">Vorname</label>
                               <input
                                 type="text"
                                 value={editCollector.first_name}
@@ -652,7 +652,7 @@ export default function Settings() {
                               />
                             </div>
                             <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-2">Nachname</label>
+                              <label className="block text-xs md:text-sm font-medium text-gray-700 mb-2">Nachname</label>
                               <input
                                 type="text"
                                 value={editCollector.last_name}
@@ -662,7 +662,7 @@ export default function Settings() {
                             </div>
                           </div>
                           <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">Telefonnummer</label>
+                            <label className="block text-xs md:text-sm font-medium text-gray-700 mb-2">Telefonnummer</label>
                             <input
                               type="tel"
                               value={editCollector.phone}
@@ -672,7 +672,7 @@ export default function Settings() {
                           </div>
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-2">Zeitraum von</label>
+                              <label className="block text-xs md:text-sm font-medium text-gray-700 mb-2">Zeitraum von</label>
                               <input
                                 type="date"
                                 value={editCollector.period_start}
@@ -681,7 +681,7 @@ export default function Settings() {
                               />
                             </div>
                             <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-2">Zeitraum bis</label>
+                              <label className="block text-xs md:text-sm font-medium text-gray-700 mb-2">Zeitraum bis</label>
                               <input
                                 type="date"
                                 value={editCollector.period_end}
@@ -707,7 +707,7 @@ export default function Settings() {
                         </div>
                       ) : (
                         /* Display Mode */
-                        <div className="flex justify-between items-start">
+                        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3">
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-2">
                               <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
@@ -738,16 +738,16 @@ export default function Settings() {
                               {new Date(collector.period_start).toLocaleDateString('de-DE')} - {new Date(collector.period_end).toLocaleDateString('de-DE')}
                             </p>
                           </div>
-                          <div className="flex gap-2">
+                          <div className="flex flex-col sm:flex-row gap-2">
                             <button
                               onClick={() => handleEditCollector(collector)}
-                              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors"
+                              className="w-full sm:w-auto px-3 md:px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs md:text-sm font-medium transition-colors"
                             >
                               Bearbeiten
                             </button>
                             <button
                               onClick={() => handleRemoveCollector(collector.id)}
-                              className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium transition-colors"
+                              className="w-full sm:w-auto px-3 md:px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-xs md:text-sm font-medium transition-colors"
                             >
                               Entfernen
                             </button>
@@ -762,8 +762,8 @@ export default function Settings() {
           </div>
 
           {/* Jamaat Settings Form */}
-          <div className="mt-6 bg-white rounded-lg shadow-md p-6">
-            <h2 className="text-xl font-bold text-gray-800 mb-6">Jamaat Einstellungen</h2>
+          <div className="mt-6 bg-white rounded-lg shadow-md p-4 md:p-6">
+            <h2 className="text-lg md:text-xl font-bold text-gray-800 mb-4 md:mb-6">Jamaat Einstellungen</h2>
             
             <div className="space-y-6">
               {/* Jamaat Name */}
@@ -802,27 +802,27 @@ export default function Settings() {
               {/* Postal Code and City */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-xs md:text-sm font-medium text-gray-700 mb-2">
                     PLZ
                   </label>
                   <input
                     type="text"
                     value={settings.postal_code}
                     onChange={(e) => setSettings({ ...settings, postal_code: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                    className="w-full px-3 md:px-4 py-2 text-sm md:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
                     placeholder="z.B. 60311"
                     disabled={saving}
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-xs md:text-sm font-medium text-gray-700 mb-2">
                     Ort
                   </label>
                   <input
                     type="text"
                     value={settings.city}
                     onChange={(e) => setSettings({ ...settings, city: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                    className="w-full px-3 md:px-4 py-2 text-sm md:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
                     placeholder="z.B. Frankfurt am Main"
                     disabled={saving}
                   />
@@ -851,14 +851,14 @@ export default function Settings() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {/* Total Members */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-xs md:text-sm font-medium text-gray-700 mb-2">
                       Gesamtanzahl Mitglieder
                     </label>
                     <input
                       type="number"
                       value={settings.total_members}
                       onChange={(e) => setSettings({ ...settings, total_members: parseInt(e.target.value) || 0 })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                      className="w-full px-3 md:px-4 py-2 text-sm md:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
                       placeholder="0"
                       min="0"
                       disabled={saving}
@@ -870,14 +870,14 @@ export default function Settings() {
 
                   {/* Ansar Count */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-xs md:text-sm font-medium text-gray-700 mb-2">
                       Anzahl der Ansar
                     </label>
                     <input
                       type="number"
                       value={settings.ansar_count}
                       onChange={(e) => setSettings({ ...settings, ansar_count: parseInt(e.target.value) || 0 })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                      className="w-full px-3 md:px-4 py-2 text-sm md:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
                       placeholder="0"
                       min="0"
                       disabled={saving}
@@ -886,14 +886,14 @@ export default function Settings() {
 
                   {/* Khuddam Count */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-xs md:text-sm font-medium text-gray-700 mb-2">
                       Anzahl der Khuddam
                     </label>
                     <input
                       type="number"
                       value={settings.khuddam_count}
                       onChange={(e) => setSettings({ ...settings, khuddam_count: parseInt(e.target.value) || 0 })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                      className="w-full px-3 md:px-4 py-2 text-sm md:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
                       placeholder="0"
                       min="0"
                       disabled={saving}
@@ -902,14 +902,14 @@ export default function Settings() {
 
                   {/* Tifl Count */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-xs md:text-sm font-medium text-gray-700 mb-2">
                       Anzahl der Tifl
                     </label>
                     <input
                       type="number"
                       value={settings.tifl_count}
                       onChange={(e) => setSettings({ ...settings, tifl_count: parseInt(e.target.value) || 0 })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                      className="w-full px-3 md:px-4 py-2 text-sm md:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
                       placeholder="0"
                       min="0"
                       disabled={saving}
@@ -918,14 +918,14 @@ export default function Settings() {
 
                   {/* Lajna Count */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-xs md:text-sm font-medium text-gray-700 mb-2">
                       Anzahl der Lajna
                     </label>
                     <input
                       type="number"
                       value={settings.lajna_count}
                       onChange={(e) => setSettings({ ...settings, lajna_count: parseInt(e.target.value) || 0 })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                      className="w-full px-3 md:px-4 py-2 text-sm md:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
                       placeholder="0"
                       min="0"
                       disabled={saving}
@@ -934,14 +934,14 @@ export default function Settings() {
 
                   {/* Nazarat Count */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-xs md:text-sm font-medium text-gray-700 mb-2">
                       Anzahl der Nazarat
                     </label>
                     <input
                       type="number"
                       value={settings.nazarat_count}
                       onChange={(e) => setSettings({ ...settings, nazarat_count: parseInt(e.target.value) || 0 })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                      className="w-full px-3 md:px-4 py-2 text-sm md:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
                       placeholder="0"
                       min="0"
                       disabled={saving}

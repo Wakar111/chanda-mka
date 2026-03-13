@@ -179,48 +179,48 @@ export default function Home() {
   return (
     <div className="min-h-screen flex flex-col bg-gray-100">
       <Navbar />
-      <div className="flex-grow p-8">
+      <div className="flex-grow p-4 md:p-8">
         <div className="max-w-4xl mx-auto">
           {userInfo && (
-            <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="bg-white rounded-lg shadow-md p-4 md:p-6 mb-6 md:mb-8">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
                 <div>
-                  <label className="text-sm font-medium text-gray-600">Name</label>
-                  <p className="text-gray-800 font-semibold">{userInfo.name} {userInfo.surname}</p>
+                  <label className="text-xs md:text-sm font-medium text-gray-600">Name</label>
+                  <p className="text-sm md:text-base text-gray-800 font-semibold">{userInfo.name} {userInfo.surname}</p>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-600">Jamaat ID</label>
-                  <p className="text-gray-800 font-semibold">{userInfo.jamaatID}</p>
+                  <label className="text-xs md:text-sm font-medium text-gray-600">Jamaat ID</label>
+                  <p className="text-sm md:text-base text-gray-800 font-semibold">{userInfo.jamaatID}</p>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-600">Jamaat</label>
-                  <p className="text-gray-800 font-semibold">{userInfo.jamaat}</p>
+                  <label className="text-xs md:text-sm font-medium text-gray-600">Jamaat</label>
+                  <p className="text-sm md:text-base text-gray-800 font-semibold">{userInfo.jamaat}</p>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-600">Role</label>
-                  <p className="text-gray-800 font-semibold capitalize">{userInfo.role}</p>
+                  <label className="text-xs md:text-sm font-medium text-gray-600">Role</label>
+                  <p className="text-sm md:text-base text-gray-800 font-semibold capitalize">{userInfo.role}</p>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-600">Musi</label>
-                  <p className="text-gray-800 font-semibold">{userInfo.musi ? 'Ja' : 'Nein'}</p>
+                  <label className="text-xs md:text-sm font-medium text-gray-600">Musi</label>
+                  <p className="text-sm md:text-base text-gray-800 font-semibold">{userInfo.musi ? 'Ja' : 'Nein'}</p>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-600">Gender</label>
-                  <p className="text-gray-800 font-semibold capitalize">{userInfo.gender}</p>
+                  <label className="text-xs md:text-sm font-medium text-gray-600">Gender</label>
+                  <p className="text-sm md:text-base text-gray-800 font-semibold capitalize">{userInfo.gender}</p>
                 </div>
               </div>
             </div>
           )}
-          <div className="flex justify-between items-center mb-6">
-            <h1 className="text-2xl font-bold text-gray-800">
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 md:mb-6 gap-3">
+            <h1 className="text-xl md:text-2xl font-bold text-gray-800">
               Dein Jahres Übersicht
             </h1>
             <div className="flex items-center space-x-2">
-              <label className="text-sm font-medium text-gray-600">Jahr:</label>
+              <label className="text-xs md:text-sm font-medium text-gray-600">Jahr:</label>
               <select
                 value={selectedYear}
                 onChange={(e) => setSelectedYear(Number(e.target.value))}
-                className="rounded-lg border border-gray-300 px-3 py-1 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                className="rounded-lg border border-gray-300 px-2 md:px-3 py-1 text-sm md:text-base focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                 disabled={loading}
               >
                 {availableYears.map(year => (

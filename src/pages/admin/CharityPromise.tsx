@@ -21,6 +21,7 @@ interface ChandaType {
   id: string;
   name: string;
   description: string;
+  charity_end?: string;
 }
 
 interface Payment {
@@ -836,16 +837,16 @@ export default function CharityPromise() {
 
   return (
     <AdminLayout>
-      <div className="p-8">
+      <div className="p-4 md:p-8">
         <div className="max-w-6xl mx-auto">
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <h1 className="text-2xl font-bold text-gray-800 mb-6">
+          <div className="bg-white rounded-lg shadow-md p-4 md:p-6 mb-6 md:mb-8">
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-800 mb-6 md:mb-8">
               Chanda Versprechen festlegen
             </h1>
 
             {status && (
               <div
-                className={`mb-6 p-4 rounded-lg ${
+                className={`mb-4 p-4 rounded-lg ${
                   status.type === 'success'
                     ? 'bg-green-50 text-green-700 border border-green-200'
                     : 'bg-red-50 text-red-700 border border-red-200'
@@ -863,23 +864,17 @@ export default function CharityPromise() {
                 <div className="flex space-x-4">
                   <input
                     type="text"
+                    placeholder="Jamaat ID eingeben"
                     value={searchJamaatID}
                     onChange={(e) => setSearchJamaatID(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && searchUser()}
-                    placeholder="Jamaat ID eingeben..."
-                    className="flex-1 rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                    disabled={loading}
-                    onFocus={() => {
-                      if (String(searchJamaatID || '').trim() && filteredUsers.length > 0) {
-                        setShowDropdown(true);
-                      }
-                    }}
+                    className="flex-1 rounded-lg border border-gray-300 px-3 md:px-4 py-2 text-sm md:text-base focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                   />
                   <button
                     type="button"
                     onClick={searchUser}
                     disabled={loading}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 disabled:opacity-50 transition-colors"
+                    className="px-4 md:px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm md:text-base whitespace-nowrap"
                   >
                     {loading ? 'Suche...' : 'Suchen'}
                   </button>
@@ -916,15 +911,15 @@ export default function CharityPromise() {
             {selectedUser && (
               <div className="space-y-8">
                 <div className="p-4 bg-gray-50 rounded-lg">
-                  <h2 className="text-lg font-medium text-gray-800 mb-4">Benutzer Information</h2>
-                  <div className="grid grid-cols-3 gap-4">
+                  <h2 className="text-lg md:text-xl font-bold text-gray-800 mb-4">Benutzer Information</h2>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
                     <div>
                       <p className="text-sm text-gray-500">Jamaat ID</p>
                       <p className="font-medium">{selectedUser.jamaatID}</p>
                     </div>
                     <div>
-                      <p className="text-sm text-gray-500">Name</p>
-                      <p className="font-medium">{selectedUser.name} {selectedUser.surname}</p>
+                      <p className="text-xs md:text-sm text-gray-500">Name</p>
+                      <p className="text-sm md:text-base font-medium">{selectedUser.name} {selectedUser.surname}</p>
                     </div>
                     <div>
                       <p className="text-sm text-gray-500">Jamaat</p>
@@ -954,15 +949,15 @@ export default function CharityPromise() {
                 </div>
 
                 <div className="mt-8">
-                  <div className="flex justify-between items-center mb-6">
-                    <h2 className="text-xl font-bold text-gray-800">
+                  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 md:gap-4 mb-6">
+                    <h2 className="text-lg md:text-xl font-bold text-gray-800">
                       Versprechen
                     </h2>
-                    <div className="flex items-center space-x-4">
+                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-4">
                       <button
                         type="button"
                         onClick={openNewPromiseModal}
-                        className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 focus:ring-4 focus:ring-green-300 transition-colors text-sm font-medium"
+                        className="px-3 md:px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 focus:ring-4 focus:ring-green-300 transition-colors text-xs md:text-sm font-medium whitespace-nowrap"
                       >
                         + Neu Versprechen
                       </button>
@@ -987,10 +982,10 @@ export default function CharityPromise() {
                   </div>
                   {userPromises.filter(p => p.year === selectedYear).length > 0 ? (
                     <div className="space-y-6">
-                      <div className="grid grid-cols-3 gap-4 bg-blue-50 p-4 rounded-lg">
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4 bg-blue-50 p-3 md:p-4 rounded-lg">
                         <div>
-                          <p className="text-sm text-blue-600 font-medium">Gesamt Versprechen</p>
-                          <p className="text-2xl font-bold text-blue-700">
+                          <p className="text-xs md:text-sm text-blue-600 font-medium">Gesamt Versprechen</p>
+                          <p className="text-xl md:text-2xl font-bold text-blue-700">
                             {formatCurrency(getYearlyPromiseTotal(userPromises, selectedYear))}
                           </p>
                         </div>
@@ -1010,29 +1005,29 @@ export default function CharityPromise() {
                         </div>
                       </div>
 
-                      <div className="overflow-x-auto">
-                        <table className="min-w-full divide-y divide-gray-200">
+                      <div className="overflow-x-auto -mx-4 md:mx-0">
+                        <table className="min-w-full divide-y divide-gray-200 text-sm">
                           <thead>
                             <tr>
-                              <th className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              <th className="px-3 md:px-6 py-2 md:py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Chanda Typ
                               </th>
-                              <th className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              <th className="px-3 md:px-6 py-2 md:py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Versprechen
                               </th>
-                              <th className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              <th className="px-3 md:px-6 py-2 md:py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Enddatum
                               </th>
-                              <th className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              <th className="px-3 md:px-6 py-2 md:py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Bezahlt
                               </th>
-                              <th className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              <th className="px-3 md:px-6 py-2 md:py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Letzte Zahlung am
                               </th>
-                              <th className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              <th className="px-3 md:px-6 py-2 md:py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Verbleibend
                               </th>
-                              <th className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              <th className="px-3 md:px-6 py-2 md:py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Aktionen
                               </th>
                             </tr>
@@ -1042,18 +1037,18 @@ export default function CharityPromise() {
                               .filter(p => p.year === selectedYear)
                               .map((promise) => (
                               <tr key={promise.id}>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                <td className="px-3 md:px-6 py-3 md:py-4 whitespace-nowrap text-xs md:text-sm text-gray-900">
                                   {promise.chanda_types.name}
                                 </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                <td className="px-3 md:px-6 py-3 md:py-4 whitespace-nowrap text-xs md:text-sm text-gray-900">
                                   {roundToNearestInteger(promise.promise)} €
                                 </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                  {promise.spende_ends 
-                                    ? new Date(promise.spende_ends).toLocaleDateString('de-DE')
+                                <td className="px-3 md:px-6 py-3 md:py-4 whitespace-nowrap text-xs md:text-sm text-gray-900">
+                                  {promise.chanda_types.charity_end 
+                                    ? new Date(promise.chanda_types.charity_end).toLocaleDateString('de-DE')
                                     : '-'}
                                 </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                <td className="px-3 md:px-6 py-3 md:py-4 whitespace-nowrap text-xs md:text-sm text-gray-900">
                                   {editingPromiseId === promise.id ? (
                                     <div className="flex items-center gap-2">
                                       <input
@@ -1102,7 +1097,7 @@ export default function CharityPromise() {
                                     </div>
                                   )}
                                 </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                <td className="px-3 md:px-6 py-3 md:py-4 whitespace-nowrap text-xs md:text-sm text-gray-500">
                                   {editingDatePromiseId === promise.id ? (
                                     <div className="flex items-center gap-2">
                                       <input
@@ -1170,7 +1165,7 @@ export default function CharityPromise() {
                                       <span className="text-xs">...</span>
                                     ) : (
                                       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
-                                        <path fillRule="evenodd" d="M16.5 4.478v.227a48.816 48.816 0 0 1 3.878.512.75.75 0 1 1-.256 1.478l-.209-.035-1.005 13.07a3 3 0 0 1-2.991 2.77H8.084a3 3 0 0 1-2.991-2.77L4.087 6.66l-.209.035a.75.75 0 0 1-.256-1.478A48.567 48.567 0 0 1 7.5 4.705v-.227c0-1.564 1.213-2.9 2.816-2.951a52.662 52.662 0 0 1 3.369 0c1.603.051 2.815 1.387 2.815 2.951Zm-6.136-1.452a51.196 51.196 0 0 1 3.273 0C14.39 3.05 15 3.684 15 4.478v.113a49.488 49.488 0 0 0-6 0v-.113c0-.794.609-1.428 1.364-1.452Zm-.355 5.945a.75.75 0 1 0-1.5.058l.347 9a.75.75 0 1 0 1.499-.058l-.346-9Zm5.48.058a.75.75 0 1 0-1.498-.058l-.347 9a.75.75 0 0 0 1.5.058l.345-9Z" clipRule="evenodd" />
+                                        <path fillRule="evenodd" d="M16.5 4.478v.227a48.816 48.816 0 0 1 3.878.512.75.75 0 1 1-.256 1.478l-.209-.035-1.005 13.07a3 3 0 0 1-2.991 2.77H8.084a3 3 0 0 1-2.991-2.77L4.087 6.66l-.209.035a.75.75 0 0 1-.256-1.478A48.567 48.567 0 0 1 7.5 4.705v-.227c0-1.564 1.213-2.9 2.816-2.951a52.662 52.662 0 0 1 3.369 0c1.603.051 2.815 1.387 2.815 2.951Zm-6.136-1.452a51.196 51.196 0 0 1 3.273 0C14.39 3.05 15 3.684 15 4.478v.113a49.488 49.488 0 0 0-6 0v-.113c0-.794.609-1.428 1.364-1.452Zm-.355 5.945a.75.75 0 1 0-1.5.058l.347 9a.75.75 0 1 0 1.499-.058l-.346-9Z" clipRule="evenodd" />
                                       </svg>
                                     )}
                                   </button>
@@ -1200,7 +1195,7 @@ export default function CharityPromise() {
           <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6">
               <div className="flex justify-between items-center mb-6">
-                <h2 className="text-xl font-bold text-gray-800">Neu Versprechen erstellen</h2>
+                <h1 className="text-2xl md:text-3xl font-bold text-gray-800 mb-6 md:mb-8">Chanda Versprechen verwalten</h1>
                 <button
                   type="button"
                   onClick={closeNewPromiseModal}

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '../../supabaseClient';
 import AdminLayout from '../../components/AdminLayout';
 import { calculateAge } from '../../utils/dateUtils';
@@ -46,6 +46,30 @@ export default function CreateUser() {
     gender: 'male'
   });
   const [status, setStatus] = useState<{ type: string; message: string } | null>(null);
+  const [savedAdminSession, setSavedAdminSession] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Save admin session on component mount
+  useEffect(() => {
+    const saveAdminSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        setSavedAdminSession(session);
+        console.log('Admin session saved on mount:', session.user.id);
+      }
+    };
+    saveAdminSession();
+  }, []);
+
+  // Auto-dismiss success messages after 5 seconds
+  useEffect(() => {
+    if (status?.type === 'success') {
+      const timer = setTimeout(() => {
+        setStatus(null);
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [status]);
 
   const validateForm = (): { isValid: boolean; message: string } => {
     const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
@@ -71,6 +95,7 @@ export default function CreateUser() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setStatus(null);
+    setIsLoading(true);
 
     const validation = validateForm();
     if (!validation.isValid) {
@@ -79,15 +104,65 @@ export default function CreateUser() {
     }
 
     try {
+      // Use the admin session saved on component mount
+      if (!savedAdminSession) {
+        setStatus({ type: 'error', message: 'Sie müssen als Admin eingeloggt sein.' });
+        return;
+      }
+
+      console.log('Using saved admin session:', savedAdminSession.user.id);
+      
+      // Check if jamaatID already exists BEFORE creating auth user
+      const { data: existingJamaatID, error: jamaatCheckError } = await supabase
+        .from('users')
+        .select('jamaatID')
+        .eq('jamaatID', formData.jamaatID)
+        .maybeSingle();
+
+      if (jamaatCheckError && jamaatCheckError.code !== 'PGRST116') {
+        // PGRST116 = no rows returned, which is what we want
+        throw jamaatCheckError;
+      }
+
+      if (existingJamaatID) {
+        setStatus({ 
+          type: 'error', 
+          message: `Die Jamaat ID "${formData.jamaatID}" ist bereits vergeben. Bitte verwenden Sie eine andere Jamaat ID.` 
+        });
+        setIsLoading(false);
+        return;
+      }
+
+      // Check if email already exists BEFORE creating auth user
+      const { data: existingEmail, error: emailCheckError } = await supabase
+        .from('users')
+        .select('email')
+        .eq('email', formData.email)
+        .maybeSingle();
+
+      if (emailCheckError && emailCheckError.code !== 'PGRST116') {
+        throw emailCheckError;
+      }
+
+      if (existingEmail) {
+        setStatus({ 
+          type: 'error', 
+          message: `Die E-Mail-Adresse "${formData.email}" ist bereits registriert. Bitte verwenden Sie eine andere E-Mail-Adresse.` 
+        });
+        setIsLoading(false);
+        return;
+      }
+
+      console.log('Jamaat ID and email are unique, proceeding with user creation');
+      
       // Generate a random password
       const generatedPassword = generatePassword(12);
       
-      // Create auth user with auto-generated password
+      // Create new user (this will switch session to new user)
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: formData.email,
         password: generatedPassword,
         options: {
-          emailRedirectTo: `${window.location.origin}/login`,
           data: {
             name: formData.name,
             surname: formData.surname,
@@ -101,6 +176,25 @@ export default function CreateUser() {
       if (!authData.user) {
         throw new Error('Failed to create user');
       }
+
+      console.log('New user created:', authData.user.id);
+
+      // CRITICAL: Restore admin session BEFORE inserting into users table
+      // signUp() switched us to the new user's session, but we need admin privileges to INSERT
+      console.log('Restoring admin session before INSERT...');
+      await supabase.auth.signOut();
+      
+      const { error: restoreError } = await supabase.auth.setSession({
+        access_token: savedAdminSession.access_token,
+        refresh_token: savedAdminSession.refresh_token
+      });
+
+      if (restoreError) {
+        console.error('Error restoring admin session:', restoreError);
+        throw new Error('Failed to restore admin session');
+      }
+
+      console.log('Admin session restored, proceeding with INSERT');
 
       // Create user profile
       // Convert phone string to number for int8 database field
@@ -143,9 +237,12 @@ export default function CreateUser() {
         // Don't fail the whole operation if email fails
       }
 
+      // Admin session is already restored (done before INSERT)
+      console.log('User creation complete, admin session maintained');
+
       setStatus({ 
         type: 'success', 
-        message: `Benutzer erfolgreich erstellt! Eine E-Mail zum Festlegen des Passworts wurde an ${formData.email} gesendet.` 
+        message: `Benutzer erfolgreich erstellt! Eine E-Mail zum Festlegen des Passworts wurde an ${formData.email} gesendet. Nach dem Festlegen des Passworts kann sich der Benutzer mit der Jamaat ID "${formData.jamaatID}" anmelden.` 
       });
       setFormData({
         email: '',
@@ -162,8 +259,10 @@ export default function CreateUser() {
         role: 'user',
         gender: 'male'
       });
+      setIsLoading(false);
     } catch (error: any) {
       console.error('Error creating user:', error);
+      setIsLoading(false);
       
       // Handle rate limit error specifically
       if (error?.status === 429 || error?.message?.includes('429') || error?.message?.includes('rate limit')) {
@@ -171,16 +270,25 @@ export default function CreateUser() {
           type: 'error', 
           message: 'Zu viele Anfragen. Bitte warten Sie einige Minuten und versuchen Sie es erneut.' 
         });
+        setIsLoading(false);
       } else if (error?.message?.includes('already registered')) {
         setStatus({ 
           type: 'error', 
           message: 'Diese E-Mail-Adresse ist bereits registriert.' 
         });
+        setIsLoading(false);
+      } else if (error?.code === '23505' && error?.message?.includes('jamaatID')) {
+        setStatus({ 
+          type: 'error', 
+          message: `Die Jamaat ID "${formData.jamaatID}" ist bereits vergeben. Bitte verwenden Sie eine andere Jamaat ID.` 
+        });
+        setIsLoading(false);
       } else {
         setStatus({ 
           type: 'error', 
           message: 'Fehler beim Erstellen des Benutzers. Bitte versuchen Sie es erneut.' 
         });
+        setIsLoading(false);
       }
     }
   };
@@ -196,16 +304,13 @@ export default function CreateUser() {
 
   return (
     <AdminLayout>
-      <div className="p-8">
+      <div className="p-4 md:p-8">
         <div className="max-w-4xl mx-auto">
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <h1 className="text-2xl font-bold text-gray-800 mb-6">
-              Create New User
-            </h1>
+          <div className="bg-white rounded-lg shadow-md p-4 md:p-6">
+            <h1 className="text-xl md:text-2xl font-bold text-gray-800 mb-4 md:mb-6">Neuen Benutzer erstellen</h1>
 
             {status && (
-              <div
-                className={`mb-4 p-3 rounded ${
+              <div className={`mb-4 p-3 rounded ${
                   status.type === 'success'
                     ? 'bg-green-100 text-green-700'
                     : 'bg-red-100 text-red-700'
@@ -217,7 +322,7 @@ export default function CreateUser() {
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">
                   Email
                 </label>
                 <input
@@ -226,13 +331,13 @@ export default function CreateUser() {
                   value={formData.email}
                   onChange={handleChange}
                   required
-                  className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                  className="w-full rounded-lg border border-gray-300 px-3 md:px-4 py-2 text-sm md:text-base focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                 />
-                <p className="mt-1 text-sm text-gray-500">Ein Passwort wird automatisch generiert und per E-Mail gesendet</p>
+                <p className="mt-1 text-sm text-gray-500">Passwort wird von dem User erstellt</p>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">
                   Jamaat ID
                 </label>
                 <input
@@ -241,12 +346,12 @@ export default function CreateUser() {
                   value={formData.jamaatID}
                   onChange={handleChange}
                   required
-                  className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                  className="w-full rounded-lg border border-gray-300 px-3 md:px-4 py-2 text-sm md:text-base focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">
                   Jamaat
                 </label>
                 <input
@@ -255,13 +360,13 @@ export default function CreateUser() {
                   value={formData.jamaat}
                   onChange={handleChange}
                   required
-                  className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                  className="w-full rounded-lg border border-gray-300 px-3 md:px-4 py-2 text-sm md:text-base focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">
                     Name
                   </label>
                   <input
@@ -270,11 +375,11 @@ export default function CreateUser() {
                     value={formData.name}
                     onChange={handleChange}
                     required
-                    className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                    className="w-full rounded-lg border border-gray-300 px-3 md:px-4 py-2 text-sm md:text-base focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">
                     Surname
                   </label>
                   <input
@@ -283,14 +388,14 @@ export default function CreateUser() {
                     value={formData.surname}
                     onChange={handleChange}
                     required
-                    className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                    className="w-full rounded-lg border border-gray-300 px-3 md:px-4 py-2 text-sm md:text-base focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                   />
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">
                     Date of Birth
                   </label>
                   <input
@@ -300,12 +405,12 @@ export default function CreateUser() {
                     onChange={handleChange}
                     required
                     max={new Date().toISOString().split('T')[0]}
-                    className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                    className="w-full rounded-lg border border-gray-300 px-3 md:px-4 py-2 text-sm md:text-base focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                   />
                   <p className="mt-1 text-sm text-gray-500">Date of birth cannot be in the future</p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">
                     Musi
                   </label>
                   <select
@@ -313,7 +418,7 @@ export default function CreateUser() {
                     value={formData.musi ? 'ja' : 'nein'}
                     onChange={handleChange}
                     required
-                    className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                    className="w-full rounded-lg border border-gray-300 px-3 md:px-4 py-2 text-sm md:text-base focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                   >
                     <option value="nein">Nein</option>
                     <option value="ja">Ja</option>
@@ -321,9 +426,9 @@ export default function CreateUser() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">
                     Phone
                   </label>
                   <input
@@ -333,19 +438,19 @@ export default function CreateUser() {
                     onChange={handleChange}
                     required
                     placeholder="017854585678"
-                    className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                    className="w-full rounded-lg border border-gray-300 px-3 md:px-4 py-2 text-sm md:text-base focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                   />
                   <p className="mt-1 text-sm text-gray-500">Enter phone number (e.g., 017854585678 or +4917854585678)</p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">
                     Gender
                   </label>
                   <select
                     name="gender"
                     value={formData.gender}
                     onChange={handleChange}
-                    className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                    className="w-full rounded-lg border border-gray-300 px-3 md:px-4 py-2 text-sm md:text-base focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                   >
                     <option value="male">Male</option>
                     <option value="female">Female</option>
@@ -354,7 +459,7 @@ export default function CreateUser() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">
                   Address
                 </label>
                 <input
@@ -363,12 +468,12 @@ export default function CreateUser() {
                   value={formData.address}
                   onChange={handleChange}
                   required
-                  className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                  className="w-full rounded-lg border border-gray-300 px-3 md:px-4 py-2 text-sm md:text-base focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">
                   Profession
                 </label>
                 <select
@@ -376,7 +481,7 @@ export default function CreateUser() {
                   value={formData.profession}
                   onChange={handleChange}
                   required
-                  className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                  className="w-full rounded-lg border border-gray-300 px-3 md:px-4 py-2 text-sm md:text-base focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                 >
                   <option value="">Bitte wählen...</option>
                   <option value="Student">Student</option>
@@ -386,7 +491,7 @@ export default function CreateUser() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">
                   Role
                 </label>
                 <select
@@ -394,7 +499,7 @@ export default function CreateUser() {
                   value={formData.role}
                   onChange={handleChange}
                   required
-                  className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                  className="w-full rounded-lg border border-gray-300 px-3 md:px-4 py-2 text-sm md:text-base focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                 >
                   <option value="user">User</option>
                   <option value="admin">Admin</option>
@@ -403,9 +508,10 @@ export default function CreateUser() {
 
               <button
                 type="submit"
-                className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                disabled={isLoading}
+                className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-colors disabled:bg-blue-400 disabled:cursor-not-allowed"
               >
-                Create User
+                {isLoading ? 'Benutzer wird erstellt...' : 'Create User'}
               </button>
             </form>
           </div>

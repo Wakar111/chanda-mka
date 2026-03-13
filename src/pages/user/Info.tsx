@@ -50,16 +50,16 @@ export default function Info() {
   return (
     <div className="min-h-screen flex flex-col bg-gray-100">
       <Navbar />
-      <div className="flex-grow p-8">
+      <div className="flex-grow p-4 md:p-8">
         <div className="max-w-4xl mx-auto">
-          <h1 className="text-3xl font-bold text-gray-800 mb-8">
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-800 mb-4 md:mb-6">
             Information über Lokale Jamaat
           </h1>
 
-         {/* Jamaat Information Section */}
+          {/* Jamaat Information Section */}
           {!loading && jamaatSettings && (
-            <section className="bg-white rounded-lg shadow-md p-6 mb-8">
-              <h2 className="text-xl font-semibold text-gray-800 mb-6">
+            <section className="bg-white rounded-lg shadow-md p-4 md:p-6 mb-8">
+              <h2 className="text-xl md:text-2xl font-semibold text-gray-800 mb-3 md:mb-4">
                 Unsere Jamaat - {jamaatSettings.jamaat_name}
               </h2>
               
@@ -136,12 +136,12 @@ export default function Info() {
             </section>
           )}
 
-          <div className="space-y-8">
-            <section className="bg-white rounded-lg shadow-md p-6">
-              <h2 className="text-xl font-semibold text-gray-800 mb-4">
+          <div className="max-w-4xl mx-auto">
+            <section className="bg-white rounded-lg shadow-md p-4 md:p-6">
+              <h2 className="text-xl md:text-2xl font-semibold text-gray-800 mb-3 md:mb-4">
                 Was ist Chanda?
               </h2>
-              <p className="text-gray-600 leading-relaxed">
+              <p className="text-sm md:text-base text-gray-600 leading-relaxed mb-4 md:mb-6">
                 Chanda ist ein System des finanziellen Opfers in der Ahmadiyya Muslim Jamaat. 
                 Es basiert auf dem islamischen Prinzip der freiwilligen Spende zur Unterstützung 
                 der Gemeinschaft und ihrer wohltätigen Aktivitäten.
@@ -149,7 +149,7 @@ export default function Info() {
             </section>
 
             <section className="bg-white rounded-lg shadow-md p-6">
-              <h2 className="text-xl font-semibold text-gray-800 mb-4">
+              <h2 className="text-xl md:text-2xl font-semibold text-gray-800 mb-3 md:mb-4">
                 Arten von Chanda
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -170,7 +170,7 @@ export default function Info() {
             </section>
 
             <section className="bg-white rounded-lg shadow-md p-6">
-              <h2 className="text-xl font-semibold text-gray-800 mb-4">
+              <h2 className="text-xl md:text-2xl font-semibold text-gray-800 mb-3 md:mb-4">
                 Verwendung der Spenden
               </h2>
               <ul className="list-disc list-inside space-y-2 text-gray-600">
@@ -184,7 +184,7 @@ export default function Info() {
             </section>
 
             <section className="bg-white rounded-lg shadow-md p-6">
-              <h2 className="text-xl font-semibold text-gray-800 mb-4">
+              <h2 className="text-xl md:text-2xl font-semibold text-gray-800 mb-3 md:mb-4">
                 Wichtige Hinweise
               </h2>
               <div className="space-y-3 text-gray-600">

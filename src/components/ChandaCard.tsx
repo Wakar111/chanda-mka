@@ -38,22 +38,22 @@ export default function ChandaCard({ chanda, payments }: ChandaCardProps) {
     <div className="bg-white rounded-lg shadow-md overflow-hidden">
       <div 
         onClick={() => setIsExpanded(!isExpanded)}
-        className="p-6 cursor-pointer hover:bg-gray-50 transition-colors"
+        className="p-4 md:p-6 cursor-pointer hover:bg-gray-50 transition-colors"
       >
-        <div className="flex justify-between items-start mb-4">
-          <div>
-            <h2 className="text-xl font-semibold text-gray-800">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3 mb-4">
+          <div className="flex-1">
+            <h2 className="text-lg md:text-xl font-semibold text-gray-800">
               {chanda.name}
             </h2>
-            <p className="text-sm text-gray-600 mt-1">
+            <p className="text-xs md:text-sm text-gray-600 mt-1">
               Last Payment: {lastPayment}
             </p>
           </div>
-          <div className="text-right">
-            <p className="text-lg font-semibold text-gray-800">
+          <div className="text-left sm:text-right">
+            <p className="text-base md:text-lg font-semibold text-gray-800">
               {chanda.paid_in} €
             </p>
-            <p className="text-sm text-gray-600">
+            <p className="text-xs md:text-sm text-gray-600">
               of {chanda.promise ? `${chanda.promise} €` : 'Freiwillig'}
             </p>
           </div>
@@ -68,12 +68,12 @@ export default function ChandaCard({ chanda, payments }: ChandaCardProps) {
           </div>
         )}
 
-        <div className="flex justify-between items-center mt-4">
-          <span className="text-sm text-gray-600">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 mt-4">
+          <span className="text-xs md:text-sm text-gray-600">
             Due date: {chanda.spende_ends ? formatDate(chanda.spende_ends) : '-'}
           </span>
           <button
-            className="text-blue-600 hover:text-blue-800"
+            className="text-sm md:text-base text-blue-600 hover:text-blue-800 text-left sm:text-right"
             onClick={(e) => {
               e.stopPropagation();
               setIsExpanded(!isExpanded);
@@ -85,14 +85,14 @@ export default function ChandaCard({ chanda, payments }: ChandaCardProps) {
       </div>
 
       {isExpanded && (
-        <div className="px-6 pb-6 border-t border-gray-100">
+        <div className="px-4 md:px-6 pb-4 md:pb-6 border-t border-gray-100">
           <div className="mt-4">
-            <h3 className="font-medium text-gray-800 mb-2">Description</h3>
-            <p className="text-gray-600">{chanda.description}</p>
+            <h3 className="text-sm md:text-base font-medium text-gray-800 mb-2">Description</h3>
+            <p className="text-xs md:text-sm text-gray-600">{chanda.description}</p>
           </div>
 
-          <div className="mt-6">
-            <h3 className="font-medium text-gray-800 mb-2">Payment History</h3>
+          <div className="mt-4 md:mt-6">
+            <h3 className="text-sm md:text-base font-medium text-gray-800 mb-2">Payment History</h3>
             <div className="space-y-2">
               {payments.length > 0 ? (
                 payments.map(payment => (
@@ -100,16 +100,16 @@ export default function ChandaCard({ chanda, payments }: ChandaCardProps) {
                     key={payment.id}
                     className="flex justify-between items-center py-2 border-b border-gray-100 last:border-0"
                   >
-                    <span className="text-gray-600">
+                    <span className="text-xs md:text-sm text-gray-600">
                       {formatDate(payment.payment_date)}
                     </span>
-                    <span className="font-medium text-gray-800">
+                    <span className="text-sm md:text-base font-medium text-gray-800">
                       {payment.amount} €
                     </span>
                   </div>
                 ))
               ) : (
-                <p className="text-gray-500 italic">No payment history available</p>
+                <p className="text-xs md:text-sm text-gray-500 italic">No payment history available</p>
               )}
             </div>
           </div>

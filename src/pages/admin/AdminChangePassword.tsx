@@ -90,76 +90,77 @@ export default function AdminChangePassword() {
   return (
     <AdminLayout>
       <div className="flex items-center justify-center px-4 py-8 h-full">
-        <div className="max-w-md w-full bg-white rounded-lg shadow-xl p-8">
-          <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-gray-800 mb-2">Passwort ändern</h1>
-            <p className="text-gray-600">Geben Sie Ihr aktuelles und neues Passwort ein</p>
-          </div>
-
-          {status && (
-            <div
-              className={`mb-6 p-4 rounded-lg ${
-                status.type === 'success'
-                  ? 'bg-green-100 text-green-700'
-                  : 'bg-red-100 text-red-700'
-              }`}
-            >
-              {status.message}
-            </div>
-          )}
-
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Aktuelles Passwort
-              </label>
-              <input
-                type="password"
-                value={currentPassword}
-                onChange={(e) => setCurrentPassword(e.target.value)}
-                required
-                className="w-full rounded-lg border border-gray-300 px-4 py-3 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                placeholder="Aktuelles Passwort eingeben"
-              />
+        <div className="max-w-md mx-auto">
+          <div className="bg-white rounded-lg shadow-md p-4 md:p-6">
+            <div className="text-center mb-8">
+              <h1 className="text-xl md:text-2xl font-bold text-gray-800 mb-4 md:mb-6">Passwort ändern</h1>
+              <p className="text-gray-600">Geben Sie Ihr aktuelles und neues Passwort ein</p>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Neues Passwort
-              </label>
-              <input
-                type="password"
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                required
-                minLength={6}
-                className="w-full rounded-lg border border-gray-300 px-4 py-3 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                placeholder="Mindestens 6 Zeichen"
-              />
-            </div>
+            {status && (
+              <div
+                className={`mb-6 p-4 rounded-lg ${
+                  status.type === 'success'
+                    ? 'bg-green-100 text-green-700'
+                    : 'bg-red-100 text-red-700'
+                }`}
+              >
+                {status.message}
+              </div>
+            )}
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Neues Passwort bestätigen
-              </label>
-              <input
-                type="password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                required
-                minLength={6}
-                className="w-full rounded-lg border border-gray-300 px-4 py-3 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                placeholder="Passwort wiederholen"
-              />
-            </div>
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div>
+                <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">
+                  Aktuelles Passwort
+                </label>
+                <input
+                  type="password"
+                  value={currentPassword}
+                  onChange={(e) => setCurrentPassword(e.target.value)}
+                  required
+                  className="w-full rounded-lg border border-gray-300 px-3 md:px-4 py-2 text-sm md:text-base focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                  placeholder="Aktuelles Passwort eingeben"
+                />
+              </div>
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
-            >
-              {loading ? 'Wird geändert...' : 'Passwort ändern'}
-            </button>
+              <div>
+                <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">
+                  Neues Passwort
+                </label>
+                <input
+                  type="password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  required
+                  minLength={6}
+                  className="w-full rounded-lg border border-gray-300 px-3 md:px-4 py-2 text-sm md:text-base focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                  placeholder="Mindestens 6 Zeichen"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">
+                  Neues Passwort bestätigen
+                </label>
+                <input
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  required
+                  minLength={6}
+                  className="w-full rounded-lg border border-gray-300 px-3 md:px-4 py-2 text-sm md:text-base focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                  placeholder="Passwort wiederholen"
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium text-sm md:text-base"
+              >
+                {loading ? 'Wird geändert...' : 'Passwort ändern'}
+              </button>
           </form>
 
           <div className="mt-6 text-center">
@@ -170,6 +171,7 @@ export default function AdminChangePassword() {
               Zurück zum Profil
             </button>
           </div>
+        </div>
         </div>
       </div>
     </AdminLayout>
