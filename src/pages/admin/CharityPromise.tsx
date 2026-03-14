@@ -529,7 +529,7 @@ export default function CharityPromise() {
     setNewPromiseForm(prev => ({ ...prev, [name]: value }));
   };
 
-  const openNewPromiseModal = () => {
+  const openNewPromiseModal = async () => {
     setActiveTab('income');
     setNewPromiseForm({
       chanda_type_id: '',
@@ -542,6 +542,12 @@ export default function CharityPromise() {
       monthly_income: '',
       is_musi: selectedUser?.musi || false
     });
+    
+    // Fetch chanda types if not already loaded
+    if (chandaTypes.length === 0) {
+      await fetchChandaTypes();
+    }
+    
     setShowNewPromiseModal(true);
   };
 

@@ -16,6 +16,7 @@ import Contact from "./pages/user/Contact";
 // Admin pages
 import CreateUser from "./pages/admin/CreateUser";
 import CharityPromise from "./pages/admin/CharityPromise";
+import JamaatPromises from "./pages/admin/JamaatPromises";
 import SetChandaType from "./pages/admin/SetChandaType";
 import EditUser from "./pages/admin/EditUser";
 import MembersPage from "./pages/admin/MembersPage";
@@ -95,6 +96,11 @@ function App() {
       <Route path="/admin/charity-promise" element={
         <ProtectedRoute requiredRole="admin">
           <CharityPromise />
+        </ProtectedRoute>
+      } />
+      <Route path="/admin/jamaat-promises" element={
+        <ProtectedRoute requiredRole="admin">
+          <JamaatPromises />
         </ProtectedRoute>
       } />
       <Route path="/admin/set-chanda-type" element={

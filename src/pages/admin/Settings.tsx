@@ -77,6 +77,9 @@ export default function Settings() {
     period_end: '',
   });
 
+  // Modal state for add collector
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+
   useEffect(() => {
     checkAdminAndLoadSettings();
   }, []);
@@ -227,6 +230,7 @@ export default function Settings() {
       });
 
       setStatus({ type: 'success', message: 'Einkassierer erfolgreich hinzugefügt' });
+      setIsAddModalOpen(false);
     } catch (error) {
       console.error('Error adding collector:', error);
       setStatus({ type: 'error', message: 'Fehler beim Hinzufügen des Einkassierers' });
@@ -485,121 +489,16 @@ export default function Settings() {
               Hier können Sie Mitglieder hinzufügen, die berechtigt sind, Chanda-Spenden einzukassieren.
             </p>
 
-            {/* Add New Collector Form */}
+            {/* Add New Collector Button */}
             <div className="border-t pt-6">
-              <h3 className="text-base md:text-lg font-semibold text-gray-800 mb-4">Neuen Einkassierer hinzufügen</h3>
-              
-              <div className="space-y-4">
-                {/* Shoba Name */}
-                <div>
-                  <label className="block text-xs md:text-sm font-medium text-gray-700 mb-2">
-                    Shoba Name <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    value={newCollector.shoba_name}
-                    onChange={(e) => setNewCollector({ ...newCollector, shoba_name: e.target.value })}
-                    placeholder="z.B. Nazim Maal"
-                    className="w-full px-3 md:px-4 py-2 text-sm md:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
-                  />
-                  <p className="mt-1 text-sm text-gray-500">
-                    Position/Verantwortung des Mitglieds
-                  </p>
-                </div>
-
-                {/* First Name and Last Name */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs md:text-sm font-medium text-gray-700 mb-2">
-                      Vorname <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={newCollector.first_name}
-                      onChange={(e) => setNewCollector({ ...newCollector, first_name: e.target.value })}
-                      placeholder="Vorname"
-                      className="w-full px-3 md:px-4 py-2 text-sm md:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs md:text-sm font-medium text-gray-700 mb-2">
-                      Nachname <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={newCollector.last_name}
-                      onChange={(e) => setNewCollector({ ...newCollector, last_name: e.target.value })}
-                      placeholder="Nachname"
-                      className="w-full px-3 md:px-4 py-2 text-sm md:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
-                    />
-                  </div>
-                </div>
-
-                {/* Phone und Nizam */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-
-                  <div>
-                    <label className="block text-xs md:text-sm font-medium text-gray-700 mb-2">
-                      Telefonnummer <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="tel"
-                      value={newCollector.phone}
-                      onChange={(e) => setNewCollector({ ...newCollector, phone: e.target.value })}
-                      placeholder="z.B. +49 123 456789"
-                      className="w-full px-3 md:px-4 py-2 text-sm md:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs md:text-sm font-medium text-gray-700 mb-2">
-                      Nizam <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={newCollector.nizam}
-                      onChange={(e) => setNewCollector({ ...newCollector, nizam: e.target.value })}
-                      placeholder="Nizam"
-                      className="w-full px-3 md:px-4 py-2 text-sm md:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
-                    />
-                  </div>
-                </div>
-
-                {/* Period Start and End */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs md:text-sm font-medium text-gray-700 mb-2">
-                      Zeitraum von <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="date"
-                      value={newCollector.period_start}
-                      onChange={(e) => setNewCollector({ ...newCollector, period_start: e.target.value })}
-                      className="w-full px-3 md:px-4 py-2 text-sm md:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs md:text-sm font-medium text-gray-700 mb-2">
-                      Zeitraum bis <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="date"
-                      value={newCollector.period_end}
-                      onChange={(e) => setNewCollector({ ...newCollector, period_end: e.target.value })}
-                      className="w-full px-3 md:px-4 py-2 text-sm md:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
-                    />
-                  </div>
-                </div>
-
-                {/* Add Button */}
-                <div className="flex justify-end pt-2">
-                  <button
-                    onClick={handleAddCollector}
-                    className="w-full sm:w-auto px-4 md:px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm md:text-base font-medium transition-colors"
-                  >
-                    Einkassierer hinzufügen
-                  </button>
-                </div>
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-base md:text-lg font-semibold text-gray-800">Einkassierer verwalten</h3>
+                <button
+                  onClick={() => setIsAddModalOpen(true)}
+                  className="px-4 md:px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm md:text-base font-medium transition-colors"
+                >
+                  + Einkassierer hinzufügen
+                </button>
               </div>
             </div>
 
@@ -969,6 +868,141 @@ export default function Settings() {
 
         </div>
       </div>
+
+      {/* Add Collector Modal */}
+      {isAddModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-white border-b px-4 md:px-6 py-4 flex justify-between items-center">
+              <h3 className="text-lg md:text-xl font-bold text-gray-800">Neuen Einkassierer hinzufügen</h3>
+              <button
+                onClick={() => setIsAddModalOpen(false)}
+                className="text-gray-500 hover:text-gray-700 text-2xl font-bold"
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="p-4 md:p-6 space-y-4">
+              {/* Shoba Name */}
+              <div>
+                <label className="block text-xs md:text-sm font-medium text-gray-700 mb-2">
+                  Shoba Name <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={newCollector.shoba_name}
+                  onChange={(e) => setNewCollector({ ...newCollector, shoba_name: e.target.value })}
+                  placeholder="z.B. Nazim Maal"
+                  className="w-full px-3 md:px-4 py-2 text-sm md:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                />
+                <p className="mt-1 text-sm text-gray-500">
+                  Position/Verantwortung des Mitglieds
+                </p>
+              </div>
+
+              {/* First Name and Last Name */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs md:text-sm font-medium text-gray-700 mb-2">
+                    Vorname <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={newCollector.first_name}
+                    onChange={(e) => setNewCollector({ ...newCollector, first_name: e.target.value })}
+                    placeholder="Vorname"
+                    className="w-full px-3 md:px-4 py-2 text-sm md:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs md:text-sm font-medium text-gray-700 mb-2">
+                    Nachname <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={newCollector.last_name}
+                    onChange={(e) => setNewCollector({ ...newCollector, last_name: e.target.value })}
+                    placeholder="Nachname"
+                    className="w-full px-3 md:px-4 py-2 text-sm md:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                  />
+                </div>
+              </div>
+
+              {/* Phone und Nizam */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs md:text-sm font-medium text-gray-700 mb-2">
+                    Telefonnummer <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="tel"
+                    value={newCollector.phone}
+                    onChange={(e) => setNewCollector({ ...newCollector, phone: e.target.value })}
+                    placeholder="z.B. +49 123 456789"
+                    className="w-full px-3 md:px-4 py-2 text-sm md:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs md:text-sm font-medium text-gray-700 mb-2">
+                    Nizam <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={newCollector.nizam}
+                    onChange={(e) => setNewCollector({ ...newCollector, nizam: e.target.value })}
+                    placeholder="Nizam"
+                    className="w-full px-3 md:px-4 py-2 text-sm md:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                  />
+                </div>
+              </div>
+
+              {/* Period Start and End */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs md:text-sm font-medium text-gray-700 mb-2">
+                    Zeitraum von <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="date"
+                    value={newCollector.period_start}
+                    onChange={(e) => setNewCollector({ ...newCollector, period_start: e.target.value })}
+                    className="w-full px-3 md:px-4 py-2 text-sm md:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs md:text-sm font-medium text-gray-700 mb-2">
+                    Zeitraum bis <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="date"
+                    value={newCollector.period_end}
+                    onChange={(e) => setNewCollector({ ...newCollector, period_end: e.target.value })}
+                    className="w-full px-3 md:px-4 py-2 text-sm md:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                  />
+                </div>
+              </div>
+
+              {/* Modal Actions */}
+              <div className="flex flex-col sm:flex-row justify-end gap-3 pt-4 border-t">
+                <button
+                  onClick={() => setIsAddModalOpen(false)}
+                  className="w-full sm:w-auto px-4 md:px-6 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm md:text-base font-medium hover:bg-gray-50 transition-colors"
+                >
+                  Abbrechen
+                </button>
+                <button
+                  onClick={handleAddCollector}
+                  className="w-full sm:w-auto px-4 md:px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm md:text-base font-medium transition-colors"
+                >
+                  Einkassierer hinzufügen
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </AdminLayout>
   );
 }
