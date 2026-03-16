@@ -26,6 +26,7 @@ interface ChandaType {
   id: string;
   name: string;
   description: string;
+  charity_end?: string;
 }
 
 interface Promise {
@@ -226,20 +227,22 @@ export default function Home() {
           <div className="space-y-6">
             {promises.length > 0 ? (
               <div className="space-y-6">
-                {promises.map((promise) => (
-                  <ChandaCard
-                    key={promise.id}
-                    chanda={{
-                      id: promise.id,
-                      name: promise.chanda_types.name,
-                      description: promise.chanda_types.description,
-                      promise: promise.promise,
-                      paid_in: promise.payments?.reduce((sum, p) => sum + p.amount, 0) || 0,
-                      spende_ends: promise.spende_ends
-                    }}
-                    payments={promise.payments || []}
-                  />
-                ))}
+                {promises.map((promise) => {
+                  return (
+                    <ChandaCard
+                      key={promise.id}
+                      chanda={{
+                        id: promise.id,
+                        name: promise.chanda_types.name,
+                        description: promise.chanda_types.description,
+                        promise: promise.promise,
+                        paid_in: promise.payments?.reduce((sum, p) => sum + p.amount, 0) || 0,
+                        spende_ends: promise.chanda_types.charity_end || promise.spende_ends
+                      }}
+                      payments={promise.payments || []}
+                    />
+                  );
+                })}
               </div>
             ) : (
               <div className="bg-white rounded-lg shadow-md p-8 text-center">
