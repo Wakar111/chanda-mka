@@ -55,6 +55,7 @@ CREATE TABLE IF NOT EXISTS public.chanda_collectors (
   last_name TEXT,
   phone TEXT,
   nizam TEXT,
+  gender TEXT CHECK (gender IN ('male', 'female')),
   period_start DATE,
   period_end DATE,
   created_at TIMESTAMPTZ DEFAULT NOW(),

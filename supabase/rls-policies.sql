@@ -69,12 +69,12 @@ FOR ALL
 TO authenticated
 USING (public.is_admin());
 
--- Policy: Users can read their own promises
-CREATE POLICY "Users can read own promises"
+-- Policy: Users can read all promises (needed for jamaat-wide statistics)
+CREATE POLICY "Users can read all promises"
 ON promises
 FOR SELECT
 TO authenticated
-USING (user_id = auth.uid());
+USING (true);
 
 -- ============================================
 -- PAYMENTS TABLE
@@ -90,18 +90,12 @@ FOR ALL
 TO authenticated
 USING (public.is_admin());
 
--- Policy: Users can read their own payments
-CREATE POLICY "Users can read own payments"
+-- Policy: Users can read all payments (needed for jamaat-wide statistics)
+CREATE POLICY "Users can read all payments"
 ON payments
 FOR SELECT
 TO authenticated
-USING (
-  EXISTS (
-    SELECT 1 FROM promises
-    WHERE promises.id = payments.promise_id
-    AND promises.user_id = auth.uid()
-  )
-);
+USING (true);
 
 -- ============================================
 -- CHANDA_TYPES TABLE

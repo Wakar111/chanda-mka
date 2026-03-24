@@ -125,7 +125,7 @@ export default function CharityPromise() {
   const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const [activeTab, setActiveTab] = useState<'income' | 'manual'>('income');
+  const [activeTab, setActiveTab] = useState<'income' | 'khuddam' | 'manual'>('income');
   const [incomeBudgetForm, setIncomeBudgetForm] = useState<IncomeBudgetForm>({
     monthly_income: '',
     is_musi: false
@@ -583,6 +583,94 @@ export default function CharityPromise() {
         name: c.name,
         amount: Number(((monthlyIncome * c.percentage) / 100).toFixed(2))
       }));
+  };
+
+  const calculateKhuddamBudget = (monthlyIncome: number) => {
+    const annualIncome = monthlyIncome * 12;
+    
+    const contributions = [
+      { name: 'Majlis Khuddam', percentage: 1.00 },
+      { name: 'Ijtema Khuddam', percentage: 0.21 },
+      { name: 'Ishaat Khuddam', percentage: 0.02 }
+    ];
+
+    const yearlyAmounts = contributions.map(c => ({
+      name: c.name,
+      yearlyAmount: Number(((annualIncome * c.percentage) / 100).toFixed(2)),
+      monthlyAmount: Number((((annualIncome * c.percentage) / 100) / 12).toFixed(2))
+    }));
+
+    return yearlyAmounts;
+  };
+
+  const handleCreateKhuddamBudget = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!selectedUser) {
+      setStatus({ type: 'error', message: 'Kein Benutzer ausgewählt' });
+      return;
+    }
+
+    const monthlyIncome = Number(incomeBudgetForm.monthly_income);
+    if (isNaN(monthlyIncome) || monthlyIncome <= 0) {
+      setStatus({ type: 'error', message: 'Bitte ein gültiges Monatseinkommen eingeben' });
+      return;
+    }
+
+    setSavingNewPromise(true);
+    setStatus(null);
+
+    try {
+      const calculatedPromises = calculateKhuddamBudget(monthlyIncome);
+      const currentYear = new Date().getFullYear();
+
+      const missingTypes: string[] = [];
+      for (const promise of calculatedPromises) {
+        const chandaType = chandaTypes.find(ct => ct.name === promise.name);
+        if (!chandaType) {
+          missingTypes.push(promise.name);
+        }
+      }
+
+      if (missingTypes.length > 0) {
+        setStatus({ 
+          type: 'error', 
+          message: `Folgende Chanda-Typen fehlen: ${missingTypes.join(', ')}. Bitte erstellen Sie diese zuerst unter "Chanda-Typ festlegen".` 
+        });
+        setSavingNewPromise(false);
+        return;
+      }
+
+      for (const promise of calculatedPromises) {
+        const chandaType = chandaTypes.find(ct => ct.name === promise.name);
+        
+        const { error: promiseError } = await supabase
+          .from('promises')
+          .insert({
+            user_id: selectedUser.id,
+            chanda_type_id: chandaType!.id,
+            year: currentYear,
+            promise: promise.yearlyAmount
+          });
+
+        if (promiseError) throw promiseError;
+      }
+
+      setStatus({ type: 'success', message: 'Khuddam Budget erfolgreich erstellt' });
+      closeNewPromiseModal();
+      
+      const promises = await fetchUserPromises(selectedUser.id);
+      const years = [...new Set(promises.map(p => p.year))].sort((a, b) => b - a);
+      setAvailableYears(years);
+      if (!years.includes(currentYear)) {
+        setSelectedYear(currentYear);
+      }
+    } catch (error) {
+      console.error('Error creating Khuddam budget:', error);
+      setStatus({ type: 'error', message: 'Fehler beim Erstellen des Khuddam Budgets' });
+    } finally {
+      setSavingNewPromise(false);
+    }
   };
 
   const handleCreateIncomeBudget = async (e: React.FormEvent) => {
@@ -1155,7 +1243,7 @@ export default function CharityPromise() {
                                 <td className="px-6 py-4 whitespace-nowrap text-sm">
                                   <div className="flex items-center justify-between">
                                     <span className={`font-medium ${getRemainingAmount(promise) > 0 ? 'text-red-600' : 'text-green-600'}`}>
-                                      {formatCurrency(getRemainingAmount(promise))}
+                                      {Math.abs(roundToNearestInteger(getRemainingAmount(promise)))} €
                                     </span>
                                   </div>
                                 </td>
@@ -1223,6 +1311,17 @@ export default function CharityPromise() {
                   }`}
                 >
                   Einkommen Budget
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('khuddam')}
+                  className={`px-4 py-2 font-medium text-sm border-b-2 transition-colors ${
+                    activeTab === 'khuddam'
+                      ? 'border-blue-500 text-blue-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700'
+                  }`}
+                >
+                  Khuddam Budget
                 </button>
                 <button
                   type="button"
@@ -1328,6 +1427,100 @@ export default function CharityPromise() {
                       className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
                     >
                       {savingNewPromise ? 'Erstelle...' : 'Spenden erstellen'}
+                    </button>
+                  </div>
+                </form>
+              )}
+
+              {/* Khuddam Budget Tab */}
+              {activeTab === 'khuddam' && (
+                <form onSubmit={handleCreateKhuddamBudget} className="space-y-4">
+                  <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-4">
+                    <div className="flex items-start">
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5 text-amber-600 mr-2 mt-0.5 flex-shrink-0">
+                        <path fillRule="evenodd" d="M9.401 3.003c1.155-2 4.043-2 5.197 0l7.355 12.748c1.154 2-.29 4.5-2.599 4.5H4.645c-2.309 0-3.752-2.5-2.598-4.5L9.4 3.003ZM12 8.25a.75.75 0 0 1 .75.75v3.75a.75.75 0 0 1-1.5 0V9a.75.75 0 0 1 .75-.75Zm0 8.25a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Z" clipRule="evenodd" />
+                      </svg>
+                      <div className="text-xs text-amber-800">
+                        <p className="font-semibold mb-1">Hinweis:</p>
+                        <p>Stellen Sie sicher, dass die Khuddam Chanda-Typen (Majlis Khuddam, Ijtema Khuddam, Ishaat Khuddam) bereits unter "Chanda-Typ festlegen" angelegt wurden.</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Monatseinkommen (€) <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="number"
+                      value={incomeBudgetForm.monthly_income}
+                      onChange={(e) => setIncomeBudgetForm(prev => ({ ...prev, monthly_income: e.target.value }))}
+                      required
+                      min="0"
+                      step="0.01"
+                      placeholder="2000.00"
+                      className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                    />
+                    <p className="mt-1 text-xs text-gray-500">
+                      Berechnung basiert auf Jahreseinkommen (Monatseinkommen × 12)
+                    </p>
+                  </div>
+
+                  {incomeBudgetForm.monthly_income && Number(incomeBudgetForm.monthly_income) > 0 && (
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                      <h3 className="font-semibold text-gray-800 mb-3">Berechnete Khuddam Beiträge:</h3>
+                      <div className="space-y-3">
+                        <div className="text-xs text-gray-600 mb-2">
+                          Jahreseinkommen: {(Number(incomeBudgetForm.monthly_income) * 12).toFixed(2)} €
+                        </div>
+                        {calculateKhuddamBudget(Number(incomeBudgetForm.monthly_income)).map((item, idx) => (
+                          <div key={idx} className="border-b border-blue-200 pb-2 last:border-0">
+                            <div className="flex justify-between text-sm font-medium">
+                              <span className="text-gray-700">{item.name}:</span>
+                              <span className="text-gray-900">{item.yearlyAmount.toFixed(2)} € / Jahr</span>
+                            </div>
+                            <div className="flex justify-between text-xs text-gray-600 mt-1">
+                              <span>Monatlich:</span>
+                              <span>{item.monthlyAmount.toFixed(2)} €</span>
+                            </div>
+                          </div>
+                        ))}
+                        <div className="pt-2 border-t-2 border-blue-300">
+                          <div className="flex justify-between text-sm font-bold">
+                            <span className="text-gray-800">Gesamt (Jahr):</span>
+                            <span className="text-blue-600">
+                              {calculateKhuddamBudget(Number(incomeBudgetForm.monthly_income))
+                                .reduce((sum, item) => sum + item.yearlyAmount, 0)
+                                .toFixed(2)} €
+                            </span>
+                          </div>
+                          <div className="flex justify-between text-xs text-gray-600 mt-1">
+                            <span>Monatlich:</span>
+                            <span>
+                              {(calculateKhuddamBudget(Number(incomeBudgetForm.monthly_income))
+                                .reduce((sum, item) => sum + item.yearlyAmount, 0) / 12)
+                                .toFixed(2)} €
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="flex justify-end space-x-3 pt-4">
+                    <button
+                      type="button"
+                      onClick={closeNewPromiseModal}
+                      className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                    >
+                      Abbrechen
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={savingNewPromise}
+                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
+                    >
+                      {savingNewPromise ? 'Erstelle...' : 'Khuddam Spenden erstellen'}
                     </button>
                   </div>
                 </form>

@@ -121,6 +121,7 @@ export default function Navbar() {
         return (
             <>
                 <Link to="/user" className="hover:text-gray-300">Home</Link>
+                <Link to="/user/promises" className="hover:text-gray-300">Promises</Link>
                 <Link to="/user/info" className="hover:text-gray-300">Info</Link>
                 <Link to="/user/contact" className="hover:text-gray-300">Contact</Link>
                 

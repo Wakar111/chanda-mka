@@ -201,7 +201,7 @@ export default function AdminDashboard() {
             <div className="bg-white rounded-lg shadow-md p-4 md:p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-500 mb-1">Normale Mitglieder</p>
+                  <p className="text-sm text-gray-500 mb-1">User Anzahl</p>
                   <p className="text-2xl md:text-3xl font-bold text-gray-800">{stats.regularUserCount}</p>
                 </div>
                 <div className="bg-blue-100 rounded-full p-3">

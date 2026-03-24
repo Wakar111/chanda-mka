@@ -12,6 +12,7 @@ import Home from "./pages/user/Home";
 import Info from "./pages/user/Info";
 import Profile from "./pages/user/Profile";
 import Contact from "./pages/user/Contact";
+import Promises from "./pages/user/Promises";
 
 // Admin pages
 import CreateUser from "./pages/admin/CreateUser";
@@ -23,6 +24,7 @@ import MembersPage from "./pages/admin/MembersPage";
 import AdminProfile from "./pages/admin/AdminProfile";
 import AdminChangePassword from "./pages/admin/AdminChangePassword";
 import Settings from "./pages/admin/Settings";
+import ManageQuotes from "./pages/admin/ManageQuotes";
 
 function App() {
 
@@ -49,6 +51,11 @@ function App() {
       <Route path="/user" element={
         <ProtectedRoute requiredRole="user">
           <Home />
+        </ProtectedRoute>
+      } />
+      <Route path="/user/promises" element={
+        <ProtectedRoute requiredRole="user">
+          <Promises />
         </ProtectedRoute>
       } />
       <Route path="/user/info" element={
@@ -111,6 +118,11 @@ function App() {
       <Route path="/admin/edit-user/:userId" element={
         <ProtectedRoute requiredRole="admin">
           <EditUser />
+        </ProtectedRoute>
+      } />
+      <Route path="/admin/manage-quotes" element={
+        <ProtectedRoute requiredRole="admin">
+          <ManageQuotes />
         </ProtectedRoute>
       } />
     </Routes>

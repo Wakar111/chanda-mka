@@ -10,6 +10,7 @@ interface ChandaCollector {
   last_name: string;
   phone: string;
   nizam: string;
+  gender: string; // 'male' or 'female'
   period_start: string; // ISO date format
   period_end: string; // ISO date format
 }
@@ -61,6 +62,7 @@ export default function Settings() {
     last_name: '',
     phone: '',
     nizam: '',
+    gender: '',
     period_start: '',
     period_end: '',
   });
@@ -73,6 +75,7 @@ export default function Settings() {
     last_name: '',
     phone: '',
     nizam: '',
+    gender: '',
     period_start: '',
     period_end: '',
   });
@@ -200,6 +203,7 @@ export default function Settings() {
           last_name: newCollector.last_name.trim(),
           phone: newCollector.phone.trim(),
           nizam: newCollector.nizam.trim(),
+          gender: newCollector.gender,
           period_start: newCollector.period_start,
           period_end: newCollector.period_end,
         })
@@ -225,6 +229,7 @@ export default function Settings() {
         last_name: '',
         phone: '',
         nizam: '',
+        gender: '',
         period_start: '',
         period_end: '',
       });
@@ -245,6 +250,7 @@ export default function Settings() {
       last_name: collector.last_name,
       phone: collector.phone,
       nizam: collector.nizam,
+      gender: collector.gender || '',
       period_start: collector.period_start,
       period_end: collector.period_end,
     });
@@ -258,6 +264,7 @@ export default function Settings() {
       last_name: '',
       phone: '',
       nizam: '',
+      gender: '',
       period_start: '',
       period_end: '',
     });
@@ -302,6 +309,7 @@ export default function Settings() {
           last_name: editCollector.last_name.trim(),
           phone: editCollector.phone.trim(),
           nizam: editCollector.nizam.trim(),
+          gender: editCollector.gender,
           period_start: editCollector.period_start,
           period_end: editCollector.period_end,
         })
@@ -325,6 +333,7 @@ export default function Settings() {
                 last_name: editCollector.last_name.trim(),
                 phone: editCollector.phone.trim(),
                 nizam: editCollector.nizam.trim(),
+                gender: editCollector.gender,
                 period_start: editCollector.period_start,
                 period_end: editCollector.period_end,
               }
@@ -484,23 +493,18 @@ export default function Settings() {
 
           {/* Chanda Collectors Section */}
           <div className="bg-white rounded-lg shadow-md p-4 md:p-6">
-            <h2 className="text-lg md:text-xl font-bold text-gray-800 mb-4 md:mb-6">Chanda Einkassierer verwalten</h2>
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4 md:mb-6">
+              <h2 className="text-lg md:text-xl font-bold text-gray-800">Chanda Einkassierer verwalten</h2>
+              <button
+                onClick={() => setIsAddModalOpen(true)}
+                className="w-full sm:w-auto px-4 md:px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm md:text-base font-medium transition-colors"
+              >
+                + Einkassierer hinzufügen
+              </button>
+            </div>
             <p className="text-sm text-gray-600 mb-6">
               Hier können Sie Mitglieder hinzufügen, die berechtigt sind, Chanda-Spenden einzukassieren.
             </p>
-
-            {/* Add New Collector Button */}
-            <div className="border-t pt-6">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-base md:text-lg font-semibold text-gray-800">Einkassierer verwalten</h3>
-                <button
-                  onClick={() => setIsAddModalOpen(true)}
-                  className="px-4 md:px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm md:text-base font-medium transition-colors"
-                >
-                  + Einkassierer hinzufügen
-                </button>
-              </div>
-            </div>
 
             {/* List of Collectors */}
             <div className="border-t mt-6 pt-6">
@@ -569,6 +573,18 @@ export default function Settings() {
                               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
                             />
                           </div>
+                          <div>
+                            <label className="block text-xs md:text-sm font-medium text-gray-700 mb-2">Geschlecht</label>
+                            <select
+                              value={editCollector.gender}
+                              onChange={(e) => setEditCollector({ ...editCollector, gender: e.target.value })}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                            >
+                              <option value="">Bitte auswählen</option>
+                              <option value="male">Männlich</option>
+                              <option value="female">Weiblich</option>
+                            </select>
+                          </div>
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                               <label className="block text-xs md:text-sm font-medium text-gray-700 mb-2">Zeitraum von</label>
@@ -628,6 +644,14 @@ export default function Settings() {
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                                 </svg>
                                 Nizam: {collector.nizam}
+                              </p>
+                            )}
+                            {collector.gender && (
+                              <p className="text-sm text-gray-600 mt-1">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 inline mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                </svg>
+                                Geschlecht: {collector.gender === 'male' ? 'Männlich' : collector.gender === 'female' ? 'Weiblich' : collector.gender}
                               </p>
                             )}
                             <p className="text-sm text-gray-600 mt-1">
@@ -956,6 +980,22 @@ export default function Settings() {
                     className="w-full px-3 md:px-4 py-2 text-sm md:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
                   />
                 </div>
+              </div>
+
+              {/* Gender */}
+              <div>
+                <label className="block text-xs md:text-sm font-medium text-gray-700 mb-2">
+                  Geschlecht <span className="text-red-500">*</span>
+                </label>
+                <select
+                  value={newCollector.gender}
+                  onChange={(e) => setNewCollector({ ...newCollector, gender: e.target.value })}
+                  className="w-full px-3 md:px-4 py-2 text-sm md:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                >
+                  <option value="">Bitte auswählen</option>
+                  <option value="male">Männlich</option>
+                  <option value="female">Weiblich</option>
+                </select>
               </div>
 
               {/* Period Start and End */}

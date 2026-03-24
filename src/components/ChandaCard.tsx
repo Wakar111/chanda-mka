@@ -54,7 +54,7 @@ export default function ChandaCard({ chanda, payments }: ChandaCardProps) {
               {chanda.paid_in} €
             </p>
             <p className="text-xs md:text-sm text-gray-600">
-              of {chanda.promise ? `${chanda.promise} €` : 'Freiwillig'}
+              of {chanda.promise ? `${Math.round(chanda.promise)} €` : 'Freiwillig'}
             </p>
           </div>
         </div>

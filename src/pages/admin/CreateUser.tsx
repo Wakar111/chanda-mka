@@ -76,12 +76,6 @@ export default function CreateUser() {
       return { isValid: false, message: 'Please enter a valid email address' };
     }
 
-    const normalizedPhone = formData.phone.replace(/\s+/g, '');
-    const phoneRegex = /^(\+49|0)[1-9][0-9]{8,14}$/;
-    if (!phoneRegex.test(normalizedPhone)) {
-      return { isValid: false, message: 'Please enter a valid German phone number (e.g., 017854585 or +4912345667)' };
-    }
-
     const today = new Date();
     const birthDate = new Date(formData.date_of_birth);
     if (birthDate >= today) {

@@ -10,6 +10,7 @@ interface ChandaCollector {
   last_name: string;
   phone: string;
   nizam: string;
+  gender: string;
   period_start: string;
   period_end: string;
 }
@@ -17,16 +18,47 @@ interface ChandaCollector {
 export default function Contact() {
   const [collectors, setCollectors] = useState<ChandaCollector[]>([]);
   const [loading, setLoading] = useState(true);
+  const [userGender, setUserGender] = useState<string | null>(null);
 
   useEffect(() => {
-    loadCollectors();
+    loadUserGender();
   }, []);
+
+  useEffect(() => {
+    if (userGender) {
+      loadCollectors();
+    }
+  }, [userGender]);
+
+  const loadUserGender = async () => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+
+      const { data, error } = await supabase
+        .from('users')
+        .select('gender')
+        .eq('id', session.user.id)
+        .single();
+
+      if (error) {
+        console.error('Error loading user gender:', error);
+      }
+
+      if (data) {
+        setUserGender(data.gender);
+      }
+    } catch (error) {
+      console.error('Error loading user gender:', error);
+    }
+  };
 
   const loadCollectors = async () => {
     try {
       const { data, error } = await supabase
         .from('chanda_collectors')
         .select('*')
+        .eq('gender', userGender)
         .order('shoba_name', { ascending: true });
 
       if (error) {

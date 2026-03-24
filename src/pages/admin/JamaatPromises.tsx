@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../../supabaseClient';
 import { useNavigate } from 'react-router-dom';
 import AdminLayout from '../../components/AdminLayout';
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
+import PromisePieChart from '../../components/PromisePieChart';
 
 interface JamaatPromise {
   id: string;
@@ -34,7 +34,7 @@ export default function JamaatPromises() {
     total_promise: 0,
   });
 
-  const [selectedYearFilter, setSelectedYearFilter] = useState<string>('all');
+  const [selectedYearFilter, setSelectedYearFilter] = useState<string>('current');
   const [availableYears, setAvailableYears] = useState<string[]>([]);
   const [chandaTypes, setChandaTypes] = useState<Array<{ id: string; name: string }>>([]);
   const [paymentStats, setPaymentStats] = useState<Record<string, { promise: number; paid: number }>>({});
@@ -122,11 +122,6 @@ export default function JamaatPromises() {
         
         const years = Array.from(yearRanges).sort().reverse();
         setAvailableYears(years);
-        
-        // Set default filter to most recent year
-        if (years.length > 0 && selectedYearFilter === 'all') {
-          setSelectedYearFilter(years[0]);
-        }
       }
     } catch (error) {
       console.error('Error loading promises:', error);
@@ -292,6 +287,14 @@ export default function JamaatPromises() {
     return new Date(dateString).toLocaleDateString('de-DE');
   };
 
+  const calculateRemainingDays = (endDate: string): number => {
+    const today = new Date();
+    const end = new Date(endDate);
+    const diffTime = end.getTime() - today.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays;
+  };
+
   // Helper function to get year range from promise
   const getYearRange = (promise: JamaatPromise): string => {
     const startYear = new Date(promise.period_start).getFullYear();
@@ -302,6 +305,13 @@ export default function JamaatPromises() {
   // Filter promises based on selected year
   const filteredPromises = selectedYearFilter === 'all' 
     ? promises 
+    : selectedYearFilter === 'current'
+    ? promises.filter(p => {
+        const currentYear = new Date().getFullYear();
+        const startYear = new Date(p.period_start).getFullYear();
+        const endYear = new Date(p.period_end).getFullYear();
+        return currentYear >= startYear && currentYear <= endYear;
+      })
     : promises.filter(p => getYearRange(p) === selectedYearFilter);
 
   // Load payment statistics when filtered promises change
@@ -352,38 +362,21 @@ export default function JamaatPromises() {
                 const remaining = Math.max(0, stats.promise - stats.paid);
                 const percentage = stats.promise > 0 ? Math.min(100, ((stats.paid / stats.promise) * 100)).toFixed(1) : 0;
                 
-                const chartData = [
-                  { name: 'Bezahlt', value: stats.paid, color: '#10b981' },
-                  { name: 'Ausstehend', value: remaining, color: '#e5e7eb' }
-                ];
-
+                // Find the promise with this nizam_name to get the end date
+                const promise = filteredPromises.find(p => p.nizam_name === nizamName);
+                const endDate = promise?.period_end;
+                const remainingDays = endDate ? calculateRemainingDays(endDate) : null;
+                
                 return (
                   <div key={nizamName} className="bg-white rounded-lg shadow-md p-4 md:p-6">
                     <h3 className="text-lg font-bold text-gray-800 mb-4 text-center">{nizamName}</h3>
                     
-                    <ResponsiveContainer width="100%" height={200}>
-                      <PieChart>
-                        <Pie
-                          data={chartData}
-                          cx="50%"
-                          cy="50%"
-                          innerRadius={50}
-                          outerRadius={80}
-                          paddingAngle={2}
-                          dataKey="value"
-                        >
-                          {chartData.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={entry.color} />
-                          ))}
-                        </Pie>
-                        <Tooltip 
-                          formatter={(value) => {
-                            const numValue = typeof value === 'number' ? value : 0;
-                            return formatCurrency(numValue);
-                          }}
-                        />
-                      </PieChart>
-                    </ResponsiveContainer>
+                    <PromisePieChart
+                      paid={stats.paid}
+                      promise={stats.promise}
+                      remainingDays={remainingDays}
+                      formatCurrency={formatCurrency}
+                    />
 
                     <div className="mt-4 space-y-2 text-sm">
                       <div className="flex justify-between items-center">
@@ -398,6 +391,12 @@ export default function JamaatPromises() {
                         <span className="text-gray-600">Ausstehend:</span>
                         <span className="font-semibold text-gray-500">{formatCurrency(remaining)}</span>
                       </div>
+                      {endDate && (
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-600">Enddatum:</span>
+                          <span className="font-semibold text-gray-900">{formatDate(endDate)}</span>
+                        </div>
+                      )}
                       <div className="pt-2 border-t">
                         <div className="flex justify-between items-center">
                           <span className="text-gray-600">Fortschritt:</span>
@@ -427,6 +426,7 @@ export default function JamaatPromises() {
                     onChange={(e) => setSelectedYearFilter(e.target.value)}
                     className="px-3 md:px-4 py-2 border border-gray-300 rounded-lg text-sm md:text-base focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
                   >
+                    <option value="current">Aktuelles Jahr</option>
                     <option value="all">Alle Jahre</option>
                     {availableYears.map((year) => (
                       <option key={year} value={year}>

@@ -25,6 +25,7 @@ export default function SetChandaType() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
   const [deleteTargetName, setDeleteTargetName] = useState<string>('');
+  const [showAddModal, setShowAddModal] = useState(false);
 
   useEffect(() => {
     fetchChandaTypes();
@@ -74,6 +75,7 @@ export default function SetChandaType() {
 
       setMessage({ text: 'Chanda-Typ erfolgreich hinzugefügt', type: 'success' });
       setFormData({ name: '', description: '', charity_end: '' });
+      setShowAddModal(false);
       fetchChandaTypes();
     } catch (error) {
       console.error('Error adding chanda type:', error);
@@ -165,80 +167,30 @@ export default function SetChandaType() {
     <AdminLayout>
       <div className="p-4 md:p-8">
         <div className="max-w-4xl mx-auto">
-          <div className="bg-white rounded-lg shadow-md p-4 md:p-6 mb-6">
-            <h1 className="text-xl md:text-2xl font-bold text-gray-800 mb-4 md:mb-6">
-              Chanda-Typ hinzufügen
-            </h1>
-
-            {message.text && (
-              <div
-                className={`mb-6 p-4 rounded-lg ${
-                  message.type === 'success'
-                    ? 'bg-green-50 text-green-700 border border-green-200'
-                    : 'bg-red-50 text-red-700 border border-red-200'
-                }`}
-              >
-                {message.text}
-              </div>
-            )}
-
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div>
-                <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">
-                  Name des Chanda-Typs
-                </label>
-                <input
-                  type="text"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleChange}
-                  required
-                  className="w-full rounded-lg border border-gray-300 px-3 md:px-4 py-2 text-sm md:text-base focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">
-                  Beschreibung
-                </label>
-                <textarea
-                  name="description"
-                  value={formData.description}
-                  onChange={handleChange}
-                  required
-                  rows={4}
-                  className="w-full rounded-lg border border-gray-300 px-3 md:px-4 py-2 text-sm md:text-base focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">
-                  Endzahldatum (Optional)
-                </label>
-                <input
-                  type="date"
-                  name="charity_end"
-                  value={formData.charity_end}
-                  onChange={handleChange}
-                  className="w-full rounded-lg border border-gray-300 px-3 md:px-4 py-2 text-sm md:text-base focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                />
-                <p className="mt-1 text-xs text-gray-500">Stichtag bis wann die Spende bezahlt werden muss</p>
-              </div>
-
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full flex justify-center items-center rounded-lg bg-blue-600 px-4 py-2 font-medium text-white hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 disabled:opacity-50"
-              >
-                {loading ? <LoadingSpinner /> : 'Hinzufügen'}
-              </button>
-            </form>
-          </div>
+          {message.text && (
+            <div
+              className={`mb-6 p-4 rounded-lg ${
+                message.type === 'success'
+                  ? 'bg-green-50 text-green-700 border border-green-200'
+                  : 'bg-red-50 text-red-700 border border-red-200'
+              }`}
+            >
+              {message.text}
+            </div>
+          )}
 
           <div className="bg-white rounded-lg shadow-md p-6">
-            <h2 className="text-xl font-bold text-gray-800 mb-6">
-              Vorhandene Chanda-Typen
-            </h2>
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-6">
+              <h2 className="text-xl font-bold text-gray-800">
+                Vorhandene Chanda-Typen
+              </h2>
+              <button
+                onClick={() => setShowAddModal(true)}
+                className="w-full sm:w-auto px-4 md:px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm md:text-base font-medium transition-colors"
+              >
+                + Chanda Typ Hinzufügen
+              </button>
+            </div>
 
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200">
@@ -398,6 +350,86 @@ export default function SetChandaType() {
                   {deletingId !== null ? 'Löschen...' : 'Löschen'}
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Add Chanda Type Modal */}
+      {showAddModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-white border-b px-4 md:px-6 py-4 flex justify-between items-center">
+              <h3 className="text-lg md:text-xl font-bold text-gray-800">Chanda-Typ hinzufügen</h3>
+              <button
+                onClick={() => setShowAddModal(false)}
+                className="text-gray-500 hover:text-gray-700 text-2xl font-bold"
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="p-4 md:p-6">
+              <form onSubmit={handleSubmit} className="space-y-6">
+                <div>
+                  <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">
+                    Name des Chanda-Typs
+                  </label>
+                  <input
+                    type="text"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleChange}
+                    required
+                    className="w-full rounded-lg border border-gray-300 px-3 md:px-4 py-2 text-sm md:text-base focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">
+                    Beschreibung
+                  </label>
+                  <textarea
+                    name="description"
+                    value={formData.description}
+                    onChange={handleChange}
+                    required
+                    rows={4}
+                    className="w-full rounded-lg border border-gray-300 px-3 md:px-4 py-2 text-sm md:text-base focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">
+                    Endzahldatum (Optional)
+                  </label>
+                  <input
+                    type="date"
+                    name="charity_end"
+                    value={formData.charity_end}
+                    onChange={handleChange}
+                    className="w-full rounded-lg border border-gray-300 px-3 md:px-4 py-2 text-sm md:text-base focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                  />
+                  <p className="mt-1 text-xs text-gray-500">Stichtag bis wann die Spende bezahlt werden muss</p>
+                </div>
+
+                <div className="flex flex-col sm:flex-row justify-end gap-3 pt-4 border-t">
+                  <button
+                    type="button"
+                    onClick={() => setShowAddModal(false)}
+                    className="w-full sm:w-auto px-4 md:px-6 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm md:text-base font-medium hover:bg-gray-50 transition-colors"
+                  >
+                    Abbrechen
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="w-full sm:w-auto flex justify-center items-center rounded-lg bg-blue-600 px-4 md:px-6 py-2 font-medium text-white hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 disabled:opacity-50"
+                  >
+                    {loading ? <LoadingSpinner /> : 'Hinzufügen'}
+                  </button>
+                </div>
+              </form>
             </div>
           </div>
         </div>
