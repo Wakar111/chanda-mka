@@ -25,6 +25,7 @@ import AdminProfile from "./pages/admin/AdminProfile";
 import AdminChangePassword from "./pages/admin/AdminChangePassword";
 import Settings from "./pages/admin/Settings";
 import ManageQuotes from "./pages/admin/ManageQuotes";
+import Benachrichtigung from "./pages/admin/Benachrichtigung";
 
 function App() {
 
@@ -123,6 +124,11 @@ function App() {
       <Route path="/admin/manage-quotes" element={
         <ProtectedRoute requiredRole="admin">
           <ManageQuotes />
+        </ProtectedRoute>
+      } />
+      <Route path="/admin/benachrichtigung" element={
+        <ProtectedRoute requiredRole="admin">
+          <Benachrichtigung />
         </ProtectedRoute>
       } />
     </Routes>

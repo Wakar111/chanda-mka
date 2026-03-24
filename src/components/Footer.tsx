@@ -8,6 +8,17 @@ export default function Footer() {
           <p className="text-xs mt-1 text-gray-400">
             A youth organization dedicated to service, education, and community development.
           </p>
+          <p className="text-xs mt-2 text-gray-500">
+            Developed by{' '}
+            <a 
+              href="https://innovativ-tech.de/" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-blue-400 hover:text-blue-300 transition-colors underline"
+            >
+              innovativ-tech.de
+            </a>
+          </p>
         </footer>
       )
 }

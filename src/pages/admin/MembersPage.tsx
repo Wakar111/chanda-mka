@@ -23,6 +23,7 @@ export default function MembersPage() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [roleFilter, setRoleFilter] = useState<'all' | 'user' | 'admin'>('all');
+  const [genderFilter, setGenderFilter] = useState<'all' | 'male' | 'female'>('all');
 
   useEffect(() => {
     fetchUsers();
@@ -92,7 +93,8 @@ export default function MembersPage() {
       safeString(user.jamaat).toLowerCase().includes(searchLower)
     );
     const matchesRole = roleFilter === 'all' || user.role === roleFilter;
-    return matchesSearch && matchesRole;
+    const matchesGender = genderFilter === 'all' || user.gender === genderFilter;
+    return matchesSearch && matchesRole && matchesGender;
   });
 
   if (loading) {
@@ -126,9 +128,12 @@ export default function MembersPage() {
                 </div>
               </div>
               
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <button
-                  onClick={() => setRoleFilter('all')}
+                  onClick={() => {
+                    setRoleFilter('all');
+                    setGenderFilter('all');
+                  }}
                   className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                     roleFilter === 'all'
                       ? 'bg-blue-600 text-white'
@@ -148,7 +153,10 @@ export default function MembersPage() {
                   User
                 </button>
                 <button
-                  onClick={() => setRoleFilter('admin')}
+                  onClick={() => {
+                    setRoleFilter('admin');
+                    setGenderFilter('all');
+                  }}
                   className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                     roleFilter === 'admin'
                       ? 'bg-blue-600 text-white'
@@ -157,6 +165,18 @@ export default function MembersPage() {
                 >
                   Admin
                 </button>
+
+                {roleFilter === 'user' && (
+                  <select
+                    value={genderFilter}
+                    onChange={(e) => setGenderFilter(e.target.value as 'all' | 'male' | 'female')}
+                    className="px-4 py-2 rounded-lg border border-gray-300 text-sm font-medium bg-white text-gray-700 hover:bg-gray-50 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-colors"
+                  >
+                    <option value="all">Alle Geschlechter</option>
+                    <option value="male">Männer</option>
+                    <option value="female">Frauen</option>
+                  </select>
+                )}
               </div>
             </div>
 

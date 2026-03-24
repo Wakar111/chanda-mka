@@ -177,7 +177,6 @@ export default function AdminDashboard() {
           <div className="p-4 md:p-8">
             <h1 className="text-2xl md:text-3xl font-bold text-gray-800 mb-6 md:mb-8">Dashboard</h1>
             <p className="text-gray-600 mt-2">Willkommen zurück, {adminName || 'Admin User'}!</p>
-            <p className="text-sm text-gray-500">Hier ist eine Übersicht über Ihre Plattform</p>
           </div>
 
           {/* Stats Cards */}
