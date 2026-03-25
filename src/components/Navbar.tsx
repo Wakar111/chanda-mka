@@ -124,6 +124,8 @@ export default function Navbar() {
                 <Link to="/user/promises" className="hover:text-gray-300">Promises</Link>
                 <Link to="/user/info" className="hover:text-gray-300">Info</Link>
                 <Link to="/user/contact" className="hover:text-gray-300">Contact</Link>
+                <Link to="/user/chanda-rechner" className="hover:text-gray-300">Chanda Rechner</Link>
+                <Link to="/user/online-spenden" className="hover:text-gray-300">Online Spenden</Link>
                 
                 {/* Profile Dropdown */}
                 <div className="relative inline-block" ref={dropdownRef}>

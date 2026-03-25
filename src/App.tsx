@@ -13,6 +13,8 @@ import Info from "./pages/user/Info";
 import Profile from "./pages/user/Profile";
 import Contact from "./pages/user/Contact";
 import Promises from "./pages/user/Promises";
+import OnlineSpenden from "./pages/user/OnlineSpenden";
+import ChandaCalculator from "./pages/user/ChandaCalculator";
 
 // Admin pages
 import CreateUser from "./pages/admin/CreateUser";
@@ -67,6 +69,16 @@ function App() {
       <Route path="/user/contact" element={
         <ProtectedRoute requiredRole="user">
           <Contact />
+        </ProtectedRoute>
+      } />
+      <Route path="/user/online-spenden" element={
+        <ProtectedRoute requiredRole="user">
+          <OnlineSpenden />
+        </ProtectedRoute>
+      } />
+      <Route path="/user/chanda-rechner" element={
+        <ProtectedRoute requiredRole="user">
+          <ChandaCalculator />
         </ProtectedRoute>
       } />
 

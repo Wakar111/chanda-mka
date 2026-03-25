@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { supabase } from '../../supabaseClient';
 import AdminLayout from '../../components/AdminLayout';
+import PDFExportButton from '../../components/PromisePDFExport';
 
 interface User {
   id: string;
@@ -1055,6 +1056,17 @@ export default function CharityPromise() {
                       >
                         + Neu Versprechen
                       </button>
+
+                      <PDFExportButton
+                        user={selectedUser!}
+                        promises={userPromises.filter(p => p.year === selectedYear)}
+                        selectedYear={selectedYear}
+                        totalPromise={getYearlyPromiseTotal(userPromises, selectedYear)}
+                        totalPaid={getYearlyPaidTotal(userPromises, selectedYear)}
+                        totalUnpaid={getYearlyRemainingTotal(userPromises, selectedYear)}
+                        disabled={loading}
+                      />
+
                       <div className="flex items-center space-x-2">
                         <label className="text-sm font-medium text-gray-700">Jahr:</label>
                         <select
@@ -1073,6 +1085,7 @@ export default function CharityPromise() {
                         </select>
                       </div>
                     </div>
+                    
                   </div>
                   {userPromises.filter(p => p.year === selectedYear).length > 0 ? (
                     <div className="space-y-6">

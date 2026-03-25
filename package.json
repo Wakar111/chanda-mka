@@ -11,6 +11,8 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.57.4",
+    "jspdf": "^2.5.1",
+    "jspdf-autotable": "^3.8.2",
     "nodemailer": "^6.9.8",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
