@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef } from 'react';
 import { supabase } from '../../supabaseClient';
 import AdminLayout from '../../components/AdminLayout';
 import * as XLSX from 'xlsx';
