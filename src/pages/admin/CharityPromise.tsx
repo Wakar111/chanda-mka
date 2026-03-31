@@ -30,6 +30,7 @@ interface Payment {
   promise_id: string;
   amount: number;
   payment_date: string;
+  receipt_number?: string;
 }
 
 interface Promise {
@@ -89,6 +90,7 @@ interface NewPromiseForm {
   spende_ends: string;
   paid_amount: string;
   payment_date: string;
+  receipt_number: string;
 }
 
 interface IncomeBudgetForm {
@@ -117,7 +119,8 @@ export default function CharityPromise() {
     promise: '',
     spende_ends: '',
     paid_amount: '',
-    payment_date: ''
+    payment_date: '',
+    receipt_number: ''
   });
   const [savingNewPromise, setSavingNewPromise] = useState(false);
   const [deletingPromiseId, setDeletingPromiseId] = useState<string | null>(null);
@@ -131,6 +134,8 @@ export default function CharityPromise() {
     monthly_income: '',
     is_musi: false
   });
+  const [receiptNumber, setReceiptNumber] = useState<string>('');
+  const [showReceiptWarning, setShowReceiptWarning] = useState(false);
 
   // Auto-dismiss status messages after 5 seconds
   useEffect(() => {
@@ -215,6 +220,8 @@ export default function CharityPromise() {
     setStatus(null);
     setSelectedUser(null);
     setUserPromises([]);
+    setReceiptNumber('');
+    setShowReceiptWarning(false);
 
     try {
       setSelectedUser(user);
@@ -240,6 +247,8 @@ export default function CharityPromise() {
     setLoading(true);
     setStatus(null);
     setShowDropdown(false);
+    setReceiptNumber('');
+    setShowReceiptWarning(false);
 
     try {
       const { data, error } = await supabase
@@ -402,9 +411,15 @@ export default function CharityPromise() {
   };
 
   const savePayment = async (promiseId: string) => {
-    const newTotal = Number(editAmount.replace(',', '.'));
-    if (isNaN(newTotal) || newTotal < 0) {
+    const newAmount = Number(editAmount.replace(',', '.'));
+    if (isNaN(newAmount) || newAmount <= 0) {
       setStatus({ type: 'error', message: 'Bitte einen gültigen Betrag eingeben' });
+      return;
+    }
+
+    if (!receiptNumber.trim()) {
+      setShowReceiptWarning(true);
+      setStatus({ type: 'error', message: 'Bitte eine Quittungsnummer eingeben' });
       return;
     }
 
@@ -412,23 +427,16 @@ export default function CharityPromise() {
       setSavingPayment(promiseId);
       setStatus(null);
 
-      // Replace existing payments with a single payment equal to the new total.
-      const { error: delErr } = await supabase
+      // Add new payment to existing payments
+      const { error: insErr } = await supabase
         .from('payments')
-        .delete()
-        .eq('promise_id', promiseId);
-      if (delErr) throw delErr;
-
-      if (newTotal > 0) {
-        const { error: insErr } = await supabase
-          .from('payments')
-          .insert({
-            promise_id: promiseId,
-            amount: newTotal,
-            payment_date: new Date().toISOString(),
-          });
-        if (insErr) throw insErr;
-      }
+        .insert({
+          promise_id: promiseId,
+          amount: newAmount,
+          payment_date: new Date().toISOString(),
+          receipt_number: receiptNumber
+        });
+      if (insErr) throw insErr;
 
       // Refresh payments for this promise only
       const payments = await fetchPayments(promiseId);
@@ -537,7 +545,8 @@ export default function CharityPromise() {
       promise: '',
       spende_ends: '',
       paid_amount: '',
-      payment_date: ''
+      payment_date: '',
+      receipt_number: ''
     });
     setIncomeBudgetForm({
       monthly_income: '',
@@ -560,7 +569,8 @@ export default function CharityPromise() {
       promise: '',
       spende_ends: '',
       paid_amount: '',
-      payment_date: ''
+      payment_date: '',
+      receipt_number: ''
     });
     setIncomeBudgetForm({
       monthly_income: '',
@@ -590,9 +600,9 @@ export default function CharityPromise() {
     const annualIncome = monthlyIncome * 12;
     
     const contributions = [
-      { name: 'Majlis Khuddam', percentage: 1.00 },
-      { name: 'Ijtema Khuddam', percentage: 0.21 },
-      { name: 'Ishaat Khuddam', percentage: 0.02 }
+      { name: 'Majlis', percentage: 1.00 },
+      { name: 'Ijtema', percentage: 0.21 },
+      { name: 'Ishaat', percentage: 0.02 }
     ];
 
     const yearlyAmounts = contributions.map(c => ({
@@ -850,7 +860,8 @@ export default function CharityPromise() {
           .insert({
             promise_id: promiseData.id,
             amount: paidAmount,
-            payment_date: paymentDate
+            payment_date: paymentDate,
+            receipt_number: newPromiseForm.receipt_number || null
           });
 
         if (paymentError) throw paymentError;
@@ -1112,6 +1123,29 @@ export default function CharityPromise() {
                         </div>
                       </div>
 
+                      <div className="bg-gray-50 p-3 rounded-lg">
+                        <div className="flex items-center space-x-2">
+                          <label className="text-sm font-medium text-gray-700">Quittungsnr.:</label>
+                          <input
+                            type="text"
+                            value={receiptNumber}
+                            onChange={(e) => {
+                              setReceiptNumber(e.target.value);
+                              if (e.target.value.trim()) {
+                                setShowReceiptWarning(false);
+                              }
+                            }}
+                            placeholder="z.B. 125f412s"
+                            className="rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm flex-1"
+                          />
+                        </div>
+                        {showReceiptWarning && !receiptNumber.trim() && (
+                          <p className="text-xs text-orange-600 mt-1 ml-28">
+                            ⚠️ Quittungsnummer ist erforderlich zum Speichern von Zahlungen
+                          </p>
+                        )}
+                      </div>
+
                       <div className="overflow-x-auto -mx-4 md:mx-0">
                         <table className="min-w-full divide-y divide-gray-200 text-sm">
                           <thead>
@@ -1163,7 +1197,7 @@ export default function CharityPromise() {
                                         step="0.01"
                                         value={editAmount}
                                         onChange={(e) => setEditAmount(e.target.value)}
-                                        placeholder="Betrag"
+                                        placeholder="Neue Zahlung"
                                         className="w-24 rounded border border-gray-300 px-2 py-1 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                                       />
                                       <button
@@ -1455,7 +1489,7 @@ export default function CharityPromise() {
                       </svg>
                       <div className="text-xs text-amber-800">
                         <p className="font-semibold mb-1">Hinweis:</p>
-                        <p>Stellen Sie sicher, dass die Khuddam Chanda-Typen (Majlis Khuddam, Ijtema Khuddam, Ishaat Khuddam) bereits unter "Chanda-Typ festlegen" angelegt wurden.</p>
+                        <p>Stellen Sie sicher, dass die Khuddam Chanda-Typen (Majlis, Ijtema, Ishaat) bereits unter "Chanda-Typ festlegen" angelegt wurden.</p>
                       </div>
                     </div>
                   </div>
@@ -1581,20 +1615,6 @@ export default function CharityPromise() {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Enddatum von Chanda dieses Jahres
-                  </label>
-                  <input
-                    type="date"
-                    name="spende_ends"
-                    value={newPromiseForm.spende_ends}
-                    onChange={handleNewPromiseChange}
-                    className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                  />
-                  <p className="mt-1 text-xs text-gray-500">Optional: Fälligkeitsdatum für das Versprechen</p>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
                     Bezahlt (€)
                   </label>
                   <input
@@ -1624,6 +1644,21 @@ export default function CharityPromise() {
                   <p className="mt-1 text-xs text-gray-500">Optional: Nur erforderlich, wenn ein Betrag bezahlt wurde</p>
                 </div>
 
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Quittungsnummer <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    name="receipt_number"
+                    value={newPromiseForm.receipt_number}
+                    onChange={handleNewPromiseChange}
+                    required
+                    placeholder="z.B. 125f412s"
+                    className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                  />
+                </div>
+
                 <div className="flex space-x-3 pt-4">
                   <button
                     type="button"
@@ -1634,7 +1669,7 @@ export default function CharityPromise() {
                   </button>
                   <button
                     type="submit"
-                    disabled={savingNewPromise}
+                    disabled={savingNewPromise || !newPromiseForm.chanda_type_id || !newPromiseForm.promise || !newPromiseForm.receipt_number.trim()}
                     className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 disabled:opacity-50 transition-colors"
                   >
                     {savingNewPromise ? 'Speichern...' : 'Erstellen'}

@@ -130,13 +130,14 @@ export const exportPromisesToPDF = (props: PromisePDFExportProps) => {
       formatCurrency(paid),
       formatCurrency(remaining),
       status,
-      promise.lastPaymentDate ? formatDate(promise.lastPaymentDate) : '-'
+      promise.lastPaymentDate ? formatDate(promise.lastPaymentDate) : '-',
+      promise.chanda_types.charity_end ? formatDate(promise.chanda_types.charity_end) : '-'
     ];
   });
   
   autoTable(doc, {
     startY: 105,
-    head: [['Chanda Typ', 'Versprechen', 'Bezahlt', 'Offen', 'Status', 'Letzte Zahlung']],
+    head: [['Chanda Typ', 'Versprechen', 'Bezahlt', 'Offen', 'Status', 'Letzte Zahlung', 'Enddatum']],
     body: tableData,
     theme: 'grid',
     headStyles: {
@@ -149,12 +150,13 @@ export const exportPromisesToPDF = (props: PromisePDFExportProps) => {
       fontSize: 9
     },
     columnStyles: {
-      0: { cellWidth: 45 },
-      1: { cellWidth: 28, halign: 'right' },
-      2: { cellWidth: 28, halign: 'right' },
-      3: { cellWidth: 28, halign: 'right' },
-      4: { cellWidth: 25, halign: 'center' },
-      5: { cellWidth: 30, halign: 'center' }
+      0: { cellWidth: 38 },
+      1: { cellWidth: 25, halign: 'right' },
+      2: { cellWidth: 25, halign: 'right' },
+      3: { cellWidth: 25, halign: 'right' },
+      4: { cellWidth: 22, halign: 'center' },
+      5: { cellWidth: 28, halign: 'center' },
+      6: { cellWidth: 28, halign: 'center', textColor: [220, 38, 38] } // Red color for Enddatum
     },
     alternateRowStyles: {
       fillColor: [245, 247, 250]

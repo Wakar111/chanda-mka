@@ -4,6 +4,7 @@ interface Payment {
   id: string;
   amount: number;
   payment_date: string;
+  receipt_number?: string;
 }
 
 interface ChandaCardProps {
@@ -98,14 +99,23 @@ export default function ChandaCard({ chanda, payments }: ChandaCardProps) {
                 payments.map(payment => (
                   <div 
                     key={payment.id}
-                    className="flex justify-between items-center py-2 border-b border-gray-100 last:border-0"
+                    className="py-3 border-b border-gray-100 last:border-0"
                   >
-                    <span className="text-xs md:text-sm text-gray-600">
-                      {formatDate(payment.payment_date)}
-                    </span>
-                    <span className="text-sm md:text-base font-medium text-gray-800">
-                      {payment.amount} €
-                    </span>
+                    <div className="flex justify-between items-start">
+                      <div className="flex-1">
+                        <div className="text-xs md:text-sm text-gray-600">
+                          {formatDate(payment.payment_date)}
+                        </div>
+                        {payment.receipt_number && (
+                          <div className="text-xs text-gray-500 mt-1">
+                            Quittung Nummer: {payment.receipt_number}
+                          </div>
+                        )}
+                      </div>
+                      <span className="text-sm md:text-base font-medium text-gray-800">
+                        {payment.amount} €
+                      </span>
+                    </div>
                   </div>
                 ))
               ) : (

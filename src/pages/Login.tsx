@@ -124,12 +124,18 @@ export default function Login() {
           </button>
         </form>
 
-        <div className="mt-6 text-center">
+        <div className="mt-6 text-center space-y-2">
           <button
             onClick={() => navigate('/forgot-password')}
-            className="text-sm text-blue-600 hover:underline"
+            className="block w-full text-sm text-blue-600 hover:underline"
           >
             Passwort vergessen?
+          </button>
+          <button
+            onClick={() => navigate('/register')}
+            className="block w-full text-sm text-green-600 hover:underline font-medium"
+          >
+            Noch kein Account? Jetzt registrieren
           </button>
         </div>
         {/* small text with admin account in the center */}

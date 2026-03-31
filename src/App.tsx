@@ -1,5 +1,6 @@
 import './App.css'
 import Login from "./pages/Login";
+import Register from "./pages/Register";
 import ResetPassword from "./pages/ResetPassword";
 import ForgotPassword from "./pages/ForgotPassword";
 import ChangePassword from "./pages/ChangePassword";
@@ -28,6 +29,7 @@ import AdminChangePassword from "./pages/admin/AdminChangePassword";
 import Settings from "./pages/admin/Settings";
 import ManageQuotes from "./pages/admin/ManageQuotes";
 import Benachrichtigung from "./pages/admin/Benachrichtigung";
+import UserImport from "./pages/admin/UserImport";
 
 function App() {
 
@@ -35,6 +37,7 @@ function App() {
     <Routes>
       <Route path="/" element={<Navigate to="/login" replace />} />
       <Route path="/login" element={<Login />} />
+      <Route path="/register" element={<Register />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/reset-password" element={<ResetPassword />} />
       
@@ -141,6 +144,11 @@ function App() {
       <Route path="/admin/benachrichtigung" element={
         <ProtectedRoute requiredRole="admin">
           <Benachrichtigung />
+        </ProtectedRoute>
+      } />
+      <Route path="/admin/user-import" element={
+        <ProtectedRoute requiredRole="admin">
+          <UserImport />
         </ProtectedRoute>
       } />
     </Routes>
