@@ -29,19 +29,7 @@ export default function UserImport() {
   const [importing, setImporting] = useState(false);
   const [result, setResult] = useState<ImportResult | null>(null);
   const [preview, setPreview] = useState<UserData[]>([]);
-  const [savedAdminSession, setSavedAdminSession] = useState<any>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  // Save admin session on component mount
-  useEffect(() => {
-    const saveAdminSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        setSavedAdminSession(session);
-      }
-    };
-    saveAdminSession();
-  }, []);
 
   // Calculate age from date of birth
   const calculateAge = (dateOfBirth: string): number | null => {
@@ -286,34 +274,9 @@ export default function UserImport() {
           </p>
         </div>
 
-        {/* Template Download */}
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-6">
-          <div className="flex items-start gap-4">
-            <svg className="w-6 h-6 text-blue-600 mt-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <div className="flex-1">
-              <h3 className="font-semibold text-blue-900 mb-2">Excel-Vorlage herunterladen</h3>
-              <p className="text-sm text-blue-800 mb-4">
-                Laden Sie die Excel-Vorlage herunter, füllen Sie sie mit den Benutzerdaten aus und laden Sie sie hier hoch.
-                Die Vorlage enthält alle erforderlichen Spalten mit Beispieldaten.
-              </p>
-              <button
-                onClick={downloadTemplate}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium flex items-center gap-2"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-                Vorlage herunterladen
-              </button>
-            </div>
-          </div>
-        </div>
-
         {/* File Upload */}
-        <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-          <h2 className="text-xl font-bold text-gray-800 mb-4">Excel-Datei hochladen</h2>
+        <div className="bg-blue-50 border-2 border-blue-300 rounded-lg shadow-md p-6 mb-6">
+          <h2 className="text-xl font-bold text-blue-900 mb-4">Excel-Datei hochladen</h2>
           <div className="space-y-4">
             <div>
               <input
@@ -321,8 +284,18 @@ export default function UserImport() {
                 type="file"
                 accept=".xlsx,.xls"
                 onChange={handleFileChange}
-                className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer"
+                className="hidden"
               />
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium flex items-center gap-2 shadow-md"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                </svg>
+                Excel-Datei auswählen
+              </button>
               <p className="text-sm text-gray-500 mt-2">
                 Unterstützte Formate: .xlsx, .xls
               </p>
@@ -337,6 +310,31 @@ export default function UserImport() {
                 <span className="text-gray-500">({(file.size / 1024).toFixed(2)} KB)</span>
               </div>
             )}
+          </div>
+        </div>
+
+        {/* Template Download */}
+        <div className="bg-white border border-gray-200 rounded-lg p-6 mb-6">
+          <div className="flex items-start gap-4">
+            <svg className="w-6 h-6 text-gray-600 mt-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <div className="flex-1">
+              <h3 className="font-semibold text-gray-900 mb-2">Excel-Vorlage herunterladen</h3>
+              <p className="text-sm text-gray-700 mb-4">
+                Laden Sie die Excel-Vorlage herunter, füllen Sie sie mit den Benutzerdaten aus und laden Sie sie hier hoch.
+                Die Vorlage enthält alle erforderlichen Spalten mit Beispieldaten.
+              </p>
+              <button
+                onClick={downloadTemplate}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium flex items-center gap-2"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                Vorlage herunterladen
+              </button>
+            </div>
           </div>
         </div>
 
